@@ -8,17 +8,17 @@ from aiogram.utils import executor
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, ReplyKeyboardMarkup, KeyboardButton
 from aiohttp import web
 
-# O'zgaruvchilarni Railway tizimidan olish
+# Railway Variables
 API_TOKEN = os.getenv('API_TOKEN')
-KANAL_ID = os.getenv('KANAL_ID')
-ADMIN_ID = int(os.getenv('ADMIN_ID', 0))
-WEB_APP_URL = os.getenv('WEB_APP_URL')
+KANAL_ID = os.getenv('KANAL_ID', '@MADIWAYy')
+ADMIN_ID = int(os.getenv('ADMIN_ID', 7402636402))
+WEB_APP_URL = os.getenv('WEB_APP_URL', 'https://madiway.github.io/madiway-bot/')
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
-# Web Server (Railway o'chib qolmasligi uchun)
+# Railway serveri o'chib qolmasligi uchun (Health Check)
 async def handle(request):
     return web.Response(text="MadiWay Bot Online")
 
@@ -37,19 +37,10 @@ async def on_startup(dp):
 async def start_handler(message: types.Message):
     start_text = (
         "🏔 **MadiWay | Global Logistics & Dispatch** 🚀\n\n"
-        "Xalqaro yuk tashish va professional dispetcherlik xizmatlari tarmog'iga xush kelibsiz! "
-        "Biz to'rtta davlatni yagona xavfsiz marshrut bilan bog'laymiz:\n\n"
+        "Xalqaro yuk tashish tizimiga xush kelibsiz!\n\n"
         "🌍 **Bizning yo'nalishlar:**\n"
-        "📍 O'zbekiston 🇺🇿\n"
-        "📍 Qozog'iston 🇰🇿\n"
-        "📍 Rossiya 🇷🇺\n"
-        "📍 Ozarbayjon 🇦🇿\n\n"
-        "🛡 **Nega aynan MadiWay?**\n"
-        "✅ Ishonchlilik: Yukingiz manzili va vaqti bizning nazoratimizda.\n"
-        "✅ Tezkorlik: Eng qulay va xavfsiz yo'llarni taqdim etamiz.\n"
-        "✅ Professional Dispetcherlik: 24/7 aloqa va harakat nazorati.\n\n"
-        "🚛 **MadiWay — Sizning yukingiz, bizning mas'uliyatimiz!**\n\n"
-        "📥 Bog'lanish uchun: [@Madiways]\n"
+        "📍 O'zbekiston, Qozog'iston, Rossiya, Ozarbayjon.\n\n"
+        "🚛 **MadiWay — Sizning yukingiz, bizning mas'uliyatimiz!**\n"
         "📞 Tel: +998 (91) 944-70-08"
     )
     
@@ -61,51 +52,41 @@ async def start_handler(message: types.Message):
     
     await message.answer(start_text, parse_mode="Markdown", reply_markup=kb)
 
-# --- WEB APP DATA ---
+# --- MA'LUMOTLARNI QABUL QILISH (WEB APP DATA) ---
 @dp.message_handler(content_types=types.ContentType.WEB_APP_DATA)
 async def web_app_data_handler(message: types.Message):
     try:
         data = json.loads(message.web_app_data.data)
         user = message.from_user
 
+        # Face ID rasmi kelsa
         if "auth" in data:
-            auth = data["auth"]
-            img_bytes = base64.b64decode(auth["img"].split(',')[1])
+            img_bytes = base64.b64decode(data["auth"]["img"].split(',')[1])
             with open("verify.jpg", "wb") as f: f.write(img_bytes)
-            
-            cap = (f"👤 **Face ID Tasdiqlandi**\n"
-                   f"Ism: {auth['name']}\n"
-                   f"Tel: {auth['phone']}\n"
-                   f"Username: @{user.username}")
-            await bot.send_photo(ADMIN_ID, types.InputFile("verify.jpg"), caption=cap, parse_mode="Markdown")
+            cap = f"👤 **Face ID:** {data['auth']['name']}\n📞 **Tel:** {data['auth']['phone']}"
+            await bot.send_photo(ADMIN_ID, types.InputFile("verify.jpg"), caption=cap)
             os.remove("verify.jpg")
 
+        # Yukni kanalga 0.1s da yuborish
         if data.get("action") == "post":
             repeat = int(data.get("repeat", 1))
-            time_val = data.get("time") or "Hozir"
-            
-            channel_kb = InlineKeyboardMarkup(row_width=2)
-            channel_kb.add(
+            channel_kb = InlineKeyboardMarkup().add(
                 InlineKeyboardButton("🚚 Yukni olish", url=f"tg://user?id={user.id}"),
                 InlineKeyboardButton("👤 Yuk egasi", url=f"https://t.me/{user.username}" if user.username else f"tg://user?id={user.id}")
             )
-
-            msg_text = (f"🏔 **MadiWay | YANGI YUK**\n"
-                        f"───────────────────\n"
-                        f"{data.get('content')}\n"
-                        f"───────────────────\n"
-                        f"🕒 Vaqt: {time_val}\n"
-                        f"📍 Kanal: {KANAL_ID}\n\n"
-                        f"🔗 Kanalimiz: https://t.me/{KANAL_ID.replace('@', '')}")
+            msg = (f"🏔 **MADIWAY YUK**\n"
+                   f"───────────────────\n"
+                   f"{data['content']}\n"
+                   f"───────────────────\n"
+                   f"🔗 Kanal: https://t.me/{KANAL_ID.replace('@','')}")
             
             for _ in range(repeat):
-                await bot.send_message(KANAL_ID, msg_text, reply_markup=channel_kb, parse_mode="Markdown")
+                await bot.send_message(KANAL_ID, msg, reply_markup=channel_kb)
                 await asyncio.sleep(0.1)
-
-            await message.answer(f"✅ Yuk {repeat} marta yuborildi!")
-
+                
+            await message.answer("✅ Yuk kanalga yuborildi!")
     except Exception as e:
-        logging.error(f"Xatolik: {e}")
+        logging.error(f"Error: {e}")
 
 if __name__ == '__main__':
     executor.start_polling(dp, on_startup=on_startup, skip_updates=True)
