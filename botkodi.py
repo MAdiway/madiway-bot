@@ -8,17 +8,17 @@ from aiogram.utils import executor
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, ReplyKeyboardMarkup, KeyboardButton
 from aiohttp import web
 
-# --- SOZLAMALAR ---
-API_TOKEN = '8791239714:AAH17eobRUq3xCUMYJipwcSrmYPJPfZr3Rs'
-KANAL_ID = '@MADIWAYy'
-ADMIN_ID = 7402636402   # Sening ID raqaming
-WEB_APP_URL = "https://madiway-app.vercel.app" # Vercel linki
+# O'zgaruvchilarni Railway tizimidan olish
+API_TOKEN = os.getenv('API_TOKEN')
+KANAL_ID = os.getenv('KANAL_ID')
+ADMIN_ID = int(os.getenv('ADMIN_ID', 0))
+WEB_APP_URL = os.getenv('WEB_APP_URL')
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
-# Render serverni faol ushlash uchun
+# Web Server (Railway o'chib qolmasligi uchun)
 async def handle(request):
     return web.Response(text="MadiWay Bot Online")
 
@@ -29,9 +29,10 @@ async def on_startup(dp):
     port = int(os.environ.get("PORT", 8080))
     runner = web.AppRunner(app)
     await runner.setup()
-    await web.TCPSite(runner, '0.0.0.0', port).start()
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
 
-# --- START BUYRUG'I (SIZNING MATNINGIZ) ---
+# --- START BUYRUG'I ---
 @dp.message_handler(commands=['start'])
 async def start_handler(message: types.Message):
     start_text = (
@@ -52,40 +53,36 @@ async def start_handler(message: types.Message):
         "📞 Tel: +998 (91) 944-70-08"
     )
     
-    # Klaviatura tugmalari
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.add(KeyboardButton("🏔 MadiWay Ilovasi", web_app=WebAppInfo(url=WEB_APP_URL)))
     
-    # Faqat Admin uchun chiqadigan tugma
     if message.from_user.id == ADMIN_ID:
         kb.add(KeyboardButton("⚙️ Admin Panel", web_app=WebAppInfo(url=f"{WEB_APP_URL}?admin=true")))
     
     await message.answer(start_text, parse_mode="Markdown", reply_markup=kb)
 
-# --- WEB APP DATA HANDLER ---
+# --- WEB APP DATA ---
 @dp.message_handler(content_types=types.ContentType.WEB_APP_DATA)
 async def web_app_data_handler(message: types.Message):
     try:
         data = json.loads(message.web_app_data.data)
         user = message.from_user
 
-        # Face ID rasmi kelganda
         if "auth" in data:
             auth = data["auth"]
             img_bytes = base64.b64decode(auth["img"].split(',')[1])
-            with open("face_check.jpg", "wb") as f: f.write(img_bytes)
+            with open("verify.jpg", "wb") as f: f.write(img_bytes)
             
-            cap = (f"👤 **Yangi Face ID Autentifikatsiya**\n"
+            cap = (f"👤 **Face ID Tasdiqlandi**\n"
                    f"Ism: {auth['name']}\n"
                    f"Tel: {auth['phone']}\n"
                    f"Username: @{user.username}")
-            await bot.send_photo(ADMIN_ID, types.InputFile("face_check.jpg"), caption=cap, parse_mode="Markdown")
-            os.remove("face_check.jpg")
+            await bot.send_photo(ADMIN_ID, types.InputFile("verify.jpg"), caption=cap, parse_mode="Markdown")
+            os.remove("verify.jpg")
 
-        # Yukni kanalga yuborish (O'ta tezkor seans)
         if data.get("action") == "post":
             repeat = int(data.get("repeat", 1))
-            time_str = data.get("time") or "Hozir"
+            time_val = data.get("time") or "Hozir"
             
             channel_kb = InlineKeyboardMarkup(row_width=2)
             channel_kb.add(
@@ -97,15 +94,15 @@ async def web_app_data_handler(message: types.Message):
                         f"───────────────────\n"
                         f"{data.get('content')}\n"
                         f"───────────────────\n"
-                        f"🕒 Vaqt: {time_str}\n"
+                        f"🕒 Vaqt: {time_val}\n"
                         f"📍 Kanal: {KANAL_ID}\n\n"
                         f"🔗 Kanalimiz: https://t.me/{KANAL_ID.replace('@', '')}")
             
             for _ in range(repeat):
                 await bot.send_message(KANAL_ID, msg_text, reply_markup=channel_kb, parse_mode="Markdown")
-                await asyncio.sleep(0.1) # 0.1 soniya tezlik
+                await asyncio.sleep(0.1)
 
-            await message.answer(f"✅ Yuk {repeat} marta tarqatildi!")
+            await message.answer(f"✅ Yuk {repeat} marta yuborildi!")
 
     except Exception as e:
         logging.error(f"Xatolik: {e}")
