@@ -1,14 +1,13 @@
 import logging
 import json
-import base64
 import asyncio
 import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import WebAppInfo, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiohttp import web
 
-# Railway Variables (Settings -> Variables bo'limidan olinadi)
+# Railway Variables (Panelda sozlangan bo'lishi kerak)
 API_TOKEN = os.getenv('API_TOKEN')
 KANAL_ID = os.getenv('KANAL_ID', '@MADIWAYy')
 ADMIN_ID = int(os.getenv('ADMIN_ID', 7402636402))
@@ -18,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
-# Railway o'chib qolmasligi uchun Health Check
+# Railway o'chib qolmasligi uchun Web Server (Health Check)
 async def handle(request):
     return web.Response(text="MadiWay Bot Online")
 
@@ -32,7 +31,7 @@ async def on_startup(dp):
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
 
-# --- START BUYRUG'I (SIZNING DESCRIPTION BILAN) ---
+# --- START BUYRUG'I ---
 @dp.message_handler(commands=['start'])
 async def start_handler(message: types.Message):
     description_text = (
@@ -53,24 +52,21 @@ async def start_handler(message: types.Message):
         "📞 Tel: +998 (91) 944-70-08"
     )
     
-    # WebApp tugmasi
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.add(KeyboardButton("🏔 MadiWay Ilovasi", web_app=WebAppInfo(url=WEB_APP_URL)))
     
-    # Faqat Admin uchun tugma
     if message.from_user.id == ADMIN_ID:
         kb.add(KeyboardButton("⚙️ Admin Panel", web_app=WebAppInfo(url=f"{WEB_APP_URL}?admin=true")))
     
     await message.answer(description_text, parse_mode="Markdown", reply_markup=kb)
 
-# --- WEB APP MA'LUMOTLARINI QAYTA ISHLASH ---
+# --- WEB APP DATA ---
 @dp.message_handler(content_types=types.ContentType.WEB_APP_DATA)
 async def web_app_data_handler(message: types.Message):
     try:
         data = json.loads(message.web_app_data.data)
         user = message.from_user
 
-        # Yukni kanalga yuborish (0.1 soniya tezlik bilan)
         if data.get("action") == "post":
             repeat = int(data.get("repeat", 1))
             
@@ -84,15 +80,13 @@ async def web_app_data_handler(message: types.Message):
                         f"───────────────────\n"
                         f"{data.get('content')}\n"
                         f"───────────────────\n"
-                        f"📍 Kanal: {KANAL_ID}\n\n"
-                        f"🔗 Kanalimiz: https://t.me/{KANAL_ID.replace('@', '')}")
+                        f"🔗 Kanal: {KANAL_ID}")
             
             for _ in range(repeat):
                 await bot.send_message(KANAL_ID, msg_text, reply_markup=channel_kb, parse_mode="Markdown")
                 await asyncio.sleep(0.1)
 
             await message.answer(f"✅ Yukingiz {repeat} marta kanalga yuborildi!")
-
     except Exception as e:
         logging.error(f"Xatolik: {e}")
 
