@@ -1,41 +1,23 @@
-import logging
-import json
-import asyncio
 import os
+import logging
+import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
-from aiogram.types import WebAppInfo, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
-from aiohttp import web
+from aiogram.types import WebAppInfo, ReplyKeyboardMarkup, KeyboardButton
 
-# Railway Variables (Panelda sozlangan bo'lishi kerak)
+# Sozlamalar
 API_TOKEN = os.getenv('API_TOKEN')
-KANAL_ID = os.getenv('KANAL_ID', '@MADIWAYy')
-ADMIN_ID = int(os.getenv('ADMIN_ID', 7402636402))
-WEB_APP_URL = os.getenv('WEB_APP_URL', 'https://madiway.github.io/madiway-bot/')
+WEB_APP_URL = os.getenv('WEB_APP_URL')
+PORT = int(os.getenv('PORT', 8080))
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
-# Railway o'chib qolmasligi uchun Web Server (Health Check)
-async def handle(request):
-    return web.Response(text="MadiWay Bot Online")
-
-app = web.Application()
-app.router.add_get('/', handle)
-
-async def on_startup(dp):
-    port = int(os.environ.get("PORT", 8080))
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', port)
-    await site.start()
-
-# --- START BUYRUG'I ---
 @dp.message_handler(commands=['start'])
-async def start_handler(message: types.Message):
-    description_text = (
-        "🏔 **MadiWay | Global Logistics & Dispatch** 🚀\n\n"
+async def start(message: types.Message):
+    desc = (
+        ""🏔 **MadiWay | Global Logistics & Dispatch** 🚀\n\n"
         "Xalqaro yuk tashish va professional dispetcherlik xizmatlari tarmog'iga xush kelibsiz! "
         "Biz to'rtta davlatni yagona xavfsiz marshrut bilan bog'laymiz:\n\n"
         "🌍 **Bizning yo'nalishlar:**\n"
@@ -51,44 +33,15 @@ async def start_handler(message: types.Message):
         "📥 Bog'lanish uchun: [@Madiways]\n"
         "📞 Tel: +998 (91) 944-70-08"
     )
-    
-    kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(KeyboardButton("🏔 MadiWay Ilovasi", web_app=WebAppInfo(url=WEB_APP_URL)))
-    
-    if message.from_user.id == ADMIN_ID:
-        kb.add(KeyboardButton("⚙️ Admin Panel", web_app=WebAppInfo(url=f"{WEB_APP_URL}?admin=true")))
-    
-    await message.answer(description_text, parse_mode="Markdown", reply_markup=kb)
+    kb = ReplyKeyboardMarkup(resize_keyboard=True).add(
+        KeyboardButton("🏔 MadiWay Ilovasi", web_app=WebAppInfo(url=WEB_APP_URL))
+    )
+    await message.answer(desc, parse_mode="Markdown", reply_markup=kb)
 
-# --- WEB APP DATA ---
-@dp.message_handler(content_types=types.ContentType.WEB_APP_DATA)
-async def web_app_data_handler(message: types.Message):
-    try:
-        data = json.loads(message.web_app_data.data)
-        user = message.from_user
-
-        if data.get("action") == "post":
-            repeat = int(data.get("repeat", 1))
-            
-            channel_kb = InlineKeyboardMarkup(row_width=2)
-            channel_kb.add(
-                InlineKeyboardButton("🚚 Yukni olish", url=f"tg://user?id={user.id}"),
-                InlineKeyboardButton("👤 Yuk egasi", url=f"https://t.me/{user.username}" if user.username else f"tg://user?id={user.id}")
-            )
-
-            msg_text = (f"🏔 **MadiWay | YANGI YUK**\n"
-                        f"───────────────────\n"
-                        f"{data.get('content')}\n"
-                        f"───────────────────\n"
-                        f"🔗 Kanal: {KANAL_ID}")
-            
-            for _ in range(repeat):
-                await bot.send_message(KANAL_ID, msg_text, reply_markup=channel_kb, parse_mode="Markdown")
-                await asyncio.sleep(0.1)
-
-            await message.answer(f"✅ Yukingiz {repeat} marta kanalga yuborildi!")
-    except Exception as e:
-        logging.error(f"Xatolik: {e}")
+# Railway o'chib qolmasligi uchun oddiy server
+async def on_startup(x):
+    logging.info(f"Bot 3.10 versiyada ishga tushdi. Port: {PORT}")
 
 if __name__ == '__main__':
+    # Railway'da polling usulida ishlatamiz
     executor.start_polling(dp, on_startup=on_startup, skip_updates=True)
