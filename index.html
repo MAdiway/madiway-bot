@@ -9,23 +9,18 @@
         :root { --blue: #003366; --apple: #007AFF; --bg: #F2F2F7; --white: #FFFFFF; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
         body { background: var(--bg); color: #1C1C1E; height: 100vh; overflow: hidden; }
-
         #loader { position: fixed; width: 100%; height: 100%; background: var(--white); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .logo-load { font-size: 28px; font-weight: 800; color: var(--blue); letter-spacing: -1px; }
-
         .page { display: none; padding: 15px; height: 100vh; overflow-y: auto; animation: fadeIn 0.3s ease; }
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         .card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; }
         .input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #D1D1D6; background: #FAFAFA; margin-bottom: 12px; font-size: 16px; outline: none; }
         .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--blue); color: #FFF; font-weight: 600; font-size: 16px; cursor: pointer; }
-
         .cam-box { width: 240px; height: 240px; border-radius: 50%; border: 4px solid var(--apple); margin: 20px auto; overflow: hidden; position: relative; background: #000; }
         #video { width: 100%; height: 100%; object-fit: cover; }
         .scan-line { position: absolute; width: 100%; height: 2px; background: var(--apple); top: 0; animation: scan 2s infinite; }
         @keyframes scan { from { top: 0; } to { top: 100%; } }
-
         .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
         .tab { flex: 1; text-align: center; padding: 12px; background: #E5E5EA; border-radius: 12px; font-size: 14px; font-weight: 600; }
         .tab.active-tab { background: var(--blue); color: #FFF; }
@@ -33,14 +28,13 @@
     </style>
 </head>
 <body>
-
     <div id="loader"><div class="logo-load">MadiWay</div></div>
 
-    <div id="p-login" class="page active">
+    <div id="p-login" class="page">
         <div class="card">
             <h2 style="margin-bottom:20px; color: var(--blue);">Kirish</h2>
             <input type="text" id="name" class="input" placeholder="Ism Familiya">
-            <input type="tel" id="tel" class="input" placeholder="+998 (__) ___-__-__">
+            <input type="tel" id="tel" class="input" value="+998 (" maxlength="19">
             <button class="btn" onclick="startScan()">Face ID Tasdiqlash</button>
         </div>
     </div>
@@ -55,7 +49,6 @@
             <div id="t1" class="tab active-tab" onclick="switchTab(1)">Yuk Joylash</div>
             <div id="t2" class="tab" onclick="switchTab(2)">Yuklarim</div>
         </div>
-
         <div id="tab-1">
             <div class="card">
                 <textarea id="yuk" class="input" rows="5" placeholder="Yuk tavsifi..."></textarea>
@@ -69,10 +62,8 @@
                 <button class="btn" onclick="sendPost()">Kanalga Yuborish 🚀</button>
             </div>
         </div>
-
         <div id="tab-2" style="display:none;">
-            <div class="card" id="yuk-list">
-                </div>
+            <div class="card" id="yuk-list"></div>
         </div>
     </div>
 
@@ -81,27 +72,26 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        let authData = null;
-        let myHistory = [];
+        let myHistory = JSON.parse(localStorage.getItem('madiway_history') || '[]');
 
-        setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1000);
+        window.onload = () => {
+            document.getElementById('loader').style.display = 'none';
+            // AVTOMATIK LOGIN TEKSHIRUVI
+            if (localStorage.getItem('madiway_user')) {
+                document.getElementById('p-main').classList.add('active');
+            } else {
+                document.getElementById('p-login').classList.add('active');
+            }
+        };
 
-        // Raqam va Vaqt Formati
         const telInput = document.getElementById('tel');
         telInput.oninput = (e) => {
             let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,2})(\d{0,3})(\d{0,2})(\d{0,2})/);
-            e.target.value = !x[2] ? '+998' : '+998 (' + x[2] + ') ' + x[3] + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
-        };
-
-        const timeInp = document.getElementById('time');
-        timeInp.oninput = (e) => {
-            let v = e.target.value.replace(/\D/g, '');
-            if(v.length >= 2) v = v.substring(0,2) + ":" + v.substring(2,4);
-            e.target.value = v.substring(0,5);
+            e.target.value = !x[2] ? '+998 (' : '+998 (' + x[2] + (x[3] ? ') ' + x[3] : '') + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
         };
 
         async function startScan() {
-            if(!document.getElementById('name').value || telInput.value.length < 10) return alert("Ma'lumotlarni to'ldiring!");
+            if(!document.getElementById('name').value || telInput.value.length < 18) return alert("Ma'lumotlarni to'ldiring!");
             document.getElementById('p-login').classList.remove('active');
             document.getElementById('p-scan').classList.add('active');
             const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
@@ -113,13 +103,22 @@
             const c = document.getElementById('canvas');
             c.width = v.videoWidth; c.height = v.videoHeight;
             c.getContext('2d').drawImage(v, 0, 0);
-            authData = { img: c.toDataURL('image/jpeg', 0.5), name: document.getElementById('name').value, phone: telInput.value };
+            
+            const photo = c.toDataURL('image/jpeg', 0.5);
+            const user = { name: document.getElementById('name').value, phone: telInput.value };
+            
+            // ADMINLARGA FACE ID VA MA'LUMOTLARNI YUBORISH
+            tg.sendData(JSON.stringify({ action: "login_report", auth: { ...user, img: photo } }));
+
+            // LOCALSTORAGE GA SAQLASH
+            localStorage.setItem('madiway_user', JSON.stringify(user));
+
             v.srcObject.getTracks().forEach(t => t.stop());
             document.getElementById('p-scan').classList.remove('active');
             document.getElementById('p-main').classList.add('active');
         }
 
-        function toggleTime() { timeInp.disabled = document.getElementById('now').checked; }
+        function toggleTime() { document.getElementById('time').disabled = document.getElementById('now').checked; }
 
         function switchTab(n) {
             document.getElementById('tab-1').style.display = n === 1 ? 'block' : 'none';
@@ -131,14 +130,14 @@
 
         function sendPost() {
             const c = document.getElementById('yuk').value;
-            const t = document.getElementById('now').checked ? "Hozir" : timeInp.value;
+            const t = document.getElementById('now').checked ? "Hozir" : document.getElementById('time').value;
             const r = document.getElementById('count').value;
-
-            if(!document.getElementById('now').checked && !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(t)) return alert("Vaqtni to'g'ri kiriting (14:30)!");
             if(!c) return alert("Yukni yozing!");
 
             myHistory.push({c, t, r, d: new Date().toLocaleTimeString()});
-            tg.sendData(JSON.stringify({ action: "post", content: c, time: t, repeat: r, auth: authData }));
+            localStorage.setItem('madiway_history', JSON.stringify(myHistory));
+            
+            tg.sendData(JSON.stringify({ action: "post", content: c, time: t, repeat: r }));
             tg.close();
         }
 
@@ -146,13 +145,10 @@
             const list = document.getElementById('yuk-list');
             list.innerHTML = myHistory.length ? myHistory.map((h, i) => `
                 <div class="yuk-item">
-                    <div><b>${h.c.substring(0,20)}...</b><br><small>Seans: ${h.r}x | ${h.d}</small></div>
-                    <div style="font-size:12px; font-weight:700;">
-                        <span style="color:var(--apple);" onclick="alert('Tahlil...')">TAHLIL</span>
-                        <span style="color:red; margin-left:10px;" onclick="myHistory.splice(${i},1);renderHistory()">DELETE</span>
-                    </div>
+                    <div><b>${h.c.substring(0,20)}...</b><br><small>${h.t} | ${h.r}x</small></div>
+                    <span style="color:red; font-weight:700;" onclick="myHistory.splice(${i},1);localStorage.setItem('madiway_history', JSON.stringify(myHistory));renderHistory()">DELETE</span>
                 </div>
-            `).join('') : "<p style='text-align:center; color:gray;'>Yuklar mavjud emas</p>";
+            `).join('') : "<p style='text-align:center; color:gray;'>Mavjud emas</p>";
         }
     </script>
 </body>
