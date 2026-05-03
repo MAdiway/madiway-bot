@@ -5,8 +5,8 @@ import asyncio
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
-# --- ASOSIY MA'LUMOTLAR ---
-TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c"
+# --- ASOSIY SOZLAMALAR ---
+TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c" # YANGI TOKENINGIZ
 GROUP_ID = -1003996104316
 CHANNEL_ID = "@MADIWAYy"
 BANNER_URL = "https://raw.githubusercontent.com/madiway/madiway-bot/main/madiway_banner.png"
@@ -16,8 +16,11 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
-# --- FILTR ---
-BAD_WORDS = ["jalab", "qo'toq", "am", "qotoq", "iflos", "yaramas", "dalbayob", "axmoq", "gandon", "pider"]
+# --- TAQIQLANGAN SO'ZLAR RO'YXATI ---
+BAD_WORDS = [
+    "jalab", "qo'toq", "am", "qotoq", "iflos", "yaramas", 
+    "dalbayob", "axmoq", "gandon", "pider", "lox"
+]
 
 # --- START BUYRUG'I ---
 @dp.message_handler(commands=['start'])
@@ -28,21 +31,24 @@ async def start_handler(message: types.Message):
     
     caption = (
         "🏔 **MadiWay | Global Logistics** 🚀\n\n"
-        "Xush kelibsiz! Face ID orqali tizimga kiring va yuk e'loningizni qoldiring.\n\n"
+        "Xalqaro yuk tashish tizimiga xush kelibsiz!\n\n"
+        "Pastdagi tugma orqali Face ID tizimidan o'ting va e'lon qoldiring.\n\n"
         "📢 Kanal: T.me/MADIWAYy\n"
         "👥 Guruh: @MADIWAY_Gr"
     )
     
     try:
         await bot.send_photo(message.chat.id, photo=BANNER_URL, caption=caption, reply_markup=kb, parse_mode="Markdown")
-    except:
+    except Exception as e:
+        logging.error(f"Rasmda xato: {e}")
         await message.answer(caption, reply_markup=kb, parse_mode="Markdown")
 
-# --- WEB APP MA'LUMOTI (E'LONLAR) ---
+# --- WEB APP'DAN MA'LUMOT QABUL QILISH ---
 @dp.message_handler(content_types=['web_app_data'])
 async def web_app_data_handler(message: types.Message):
     try:
         data = json.loads(message.web_app_data.data)
+        now = datetime.datetime.now().strftime("%d.%m.%Y | %H:%M")
         
         text = (
             f"🚛 **YANGI YUK E'LONI**\n"
@@ -53,14 +59,14 @@ async def web_app_data_handler(message: types.Message):
             f"━━━━━━━━━━━━━━\n"
             f"👤 **Yuboruvchi:** {data.get('u_name')}\n"
             f"📞 **Tel:** {data.get('u_phone')}\n"
-            f"📅 **Sana:** {datetime.datetime.now().strftime('%d.%m.%Y')}"
+            f"📅 **Sana:** {now}"
         )
 
         kb = InlineKeyboardMarkup().add(
             InlineKeyboardButton("💬 Bog'lanish", url=f"tg://user?id={message.from_user.id}")
         )
 
-        # Kanal va Guruhga (Topic bo'yicha) yuborish
+        # Kanal va Guruhga yuborish
         await bot.send_message(CHANNEL_ID, text, reply_markup=kb, parse_mode="Markdown")
         try:
             await bot.send_message(GROUP_ID, text, message_thread_id=data.get('t_id'), reply_markup=kb, parse_mode="Markdown")
@@ -71,13 +77,13 @@ async def web_app_data_handler(message: types.Message):
     except Exception as e:
         logging.error(f"Xato: {e}")
 
-# --- GURUH MODERATSIYASI ---
+# --- GURUH MODERATSIYASI (REKLAMA VA SO'KINISH) ---
 @dp.message_handler(chat_id=GROUP_ID)
 async def cleaner(message: types.Message):
     if not message.text: return
     txt = message.text.lower()
     
-    # Adminlarni o'tkazib yuboramiz
+    # Adminlar uchun filtr ishlamaydi
     if message.from_user.username in ["yusufxonpro1", "madiways"]: return
 
     is_bad = any(word in txt for word in BAD_WORDS)
@@ -86,7 +92,7 @@ async def cleaner(message: types.Message):
     if is_bad or is_promo:
         try:
             await message.delete()
-            warn = await message.answer(f"⚠️ @{message.from_user.username} qoidalarni buzmang!")
+            warn = await message.answer(f"⚠️ @{message.from_user.username} guruh qoidalarini buzmang!")
             await asyncio.sleep(5)
             await warn.delete()
         except: pass
