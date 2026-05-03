@@ -3,54 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MadiWay Dispatch</title>
+    <title>MadiWay Logistics</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/inputmask@5.0.7/dist/inputmask.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --orange: #FF6B00; --bg: #F2F2F7; }
-        body { background: var(--bg); font-family: -apple-system, sans-serif; padding: 15px; margin: 0; }
+        body { background: var(--bg); font-family: -apple-system, sans-serif; margin: 0; padding: 0; }
+        .banner { width: 100%; height: 160px; overflow: hidden; position: relative; background: #fff; border-bottom: 2px solid var(--orange); }
+        .banner img { width: 100%; height: 100%; object-fit: contain; }
+        .container { padding: 15px; }
         .page { display: none; }
         .active { display: block; }
-        .card { background: white; padding: 16px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #E5E5EA; }
-        .input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #C7C7CC; margin: 8px 0; font-size: 16px; outline: none; }
-        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; cursor: pointer; }
+        .input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; margin: 10px 0; font-size: 16px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; color: white; cursor: pointer; font-size: 16px; }
         .btn-orange { background: var(--orange); }
-        .btn-blue { background: #0088cc; margin-top: 8px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; backdrop-filter: blur(4px); }
-        .modal-content { background: white; border-radius: 20px; padding: 20px; margin: 15% 20px; }
-        #v-cont { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--orange); margin: 15px auto; overflow: hidden; display: none; }
+        .btn-blue { background: #0088cc; margin-top: 10px; }
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); z-index: 1000; }
+        .modal-content { background: white; border-radius: 20px; padding: 20px; margin: 20% 15px; }
     </style>
 </head>
 <body>
 
-<div id="p-login" class="page active">
-    <div style="text-align: center; background: white; padding: 30px 20px; border-radius: 20px; border: 1px solid #DDD;">
-        <h1 style="color:var(--orange)">MadiWay</h1>
-        <div id="v-cont"><video id="video" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video></div>
-        <input type="text" id="u-name" class="input" placeholder="Ism Familiya">
-        <input type="tel" id="u-phone" class="input" placeholder="+998 (__) ___-__-__">
-        <button class="btn btn-orange" onclick="auth()">Kirish</button>
-    </div>
+<!-- Ilova ichidagi rasm -->
+<div class="banner">
+    <img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" alt="MadiWay Truck">
 </div>
 
-<div id="p-main" class="page">
-    <h3 style="margin-bottom: 15px;">Yo'nalishni tanlang:</h3>
-    <div id="list"></div>
+<div class="container">
+    <div id="p-login" class="page active">
+        <h2 style="text-align: center; color: var(--orange);">Kirish</h2>
+        <input type="text" id="u-name" class="input" placeholder="Ism Familiya">
+        <input type="tel" id="u-phone" class="input" placeholder="+998 (__) ___-__-__">
+        <button class="btn btn-orange" onclick="auth()">Davom etish</button>
+    </div>
+
+    <div id="p-main" class="page">
+        <h3 id="welcome-text">Yo'nalishni tanlang:</h3>
+        <div id="list"></div>
+    </div>
 </div>
 
 <div id="mod" class="modal">
     <div class="modal-content">
-        <h3 id="mt">Manzil</h3>
-        <textarea id="desc" class="input" rows="3" placeholder="Yuk haqida ma'lumot..."></textarea>
-        <div style="display:flex; align-items:center; gap:8px; margin: 10px 0;">
+        <h3 id="mt">Yo'nalish</h3>
+        <textarea id="desc" class="input" rows="3" placeholder="Yuk haqida ma'lumot (masalan: 20 tonna olma)"></textarea>
+        <div style="margin: 10px 0;">
             <input type="checkbox" id="now" checked onchange="document.getElementById('time').disabled = this.checked">
-            <label for="now" style="font-weight: 600;">Hozir yuborish</label>
+            <label for="now">Tezkor (Hozir)</label>
         </div>
         <input type="time" id="time" class="input" disabled>
-        <button class="btn btn-orange" onclick="send('group')">Guruhga yuborish</button>
-        <button class="btn btn-blue" onclick="send('channel')">Kanalga yuborish</button>
-        <button onclick="document.getElementById('mod').style.display='none'" style="width:100%; margin-top:10px; border:none; background:none; color:gray;">Bekor qilish</button>
+        <button class="btn btn-orange" onclick="sendData('group')">Guruhga yuborish</button>
+        <button class="btn btn-blue" onclick="sendData('channel')">Kanalga yuborish</button>
+        <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; color:gray;">Bekor qilish</button>
     </div>
 </div>
 
@@ -64,60 +69,65 @@
         {n:"Eron", id:10}, {n:"Tojikston", id:12}, {n:"Germaniya", id:14}, {n:"O'zbekiston", id:16}
     ];
 
-    let tid = 0, tn = "";
+    let selectedId = 0, selectedName = "";
 
-    async function auth() {
+    function auth() {
         const n = document.getElementById('u-name').value;
         const p = document.getElementById('u-phone').value;
-        if(n.split(' ').length < 2 || p.includes('_')) return alert("Ma'lumotlarni to'liq kiriting!");
-        
-        document.getElementById('v-cont').style.display = 'block';
-        const stream = await navigator.mediaDevices.getUserMedia({video:true});
-        document.getElementById('video').srcObject = stream;
-        
-        setTimeout(() => {
-            stream.getTracks().forEach(t => t.stop());
-            localStorage.setItem('mw_user_data', JSON.stringify({n, p}));
-            location.reload();
-        }, 2000);
+        if(n.length < 3 || p.includes('_')) return alert("Ma'lumotlarni to'liq kiriting!");
+        localStorage.setItem('mw_user', JSON.stringify({n, p}));
+        showMain();
     }
 
-    function render() {
-        document.getElementById('list').innerHTML = topics.map(t => `
-            <div class="card" onclick="openM(${t.id}, '${t.n}')">
-                <b>${t.n}</b><i class="fa-solid fa-angle-right" style="color:#C7C7CC"></i>
+    function showMain() {
+        document.getElementById('p-login').classList.remove('active');
+        document.getElementById('p-main').classList.add('active');
+        const user = JSON.parse(localStorage.getItem('mw_user'));
+        document.getElementById('welcome-text').innerText = "Salom, " + user.n.split(' ')[0] + "! Yo'nalishni tanlang:";
+        renderList();
+    }
+
+    function renderList() {
+        const html = topics.map(t => `
+            <div class="card" onclick="openModal(${t.id}, '${t.n}')">
+                <b>${t.n}</b> <span>➔</span>
             </div>
         `).join('');
+        document.getElementById('list').innerHTML = html;
     }
 
-    function openM(id, n) { tid = id; tn = n; document.getElementById('mt').innerText = n; document.getElementById('mod').style.display = 'block'; }
+    function openModal(id, n) {
+        selectedId = id; selectedName = n;
+        document.getElementById('mt').innerText = n + " yo'nalishi";
+        document.getElementById('mod').style.display = 'block';
+    }
 
-    function send(target) {
-        const d = document.getElementById('desc').value;
+    function closeModal() { document.getElementById('mod').style.display = 'none'; }
+
+    function sendData(target) {
+        const desc = document.getElementById('desc').value;
         const isNow = document.getElementById('now').checked;
-        const t = isNow ? "Hozir" : document.getElementById('time').value;
-        if(!d) return alert("Yuk haqida ma'lumot yozing!");
-        
-        const user = JSON.parse(localStorage.getItem('mw_user_data'));
-        tg.sendData(JSON.stringify({
+        const time = isNow ? "Hozir" : document.getElementById('time').value;
+        if(!desc) return alert("Yuk haqida yozing!");
+
+        const user = JSON.parse(localStorage.getItem('mw_user'));
+        const payload = {
             target: target,
-            t_id: tid,
-            t_name: tn,
-            desc: d,
-            time: t,
+            t_id: selectedId,
+            t_name: selectedName,
+            desc: desc,
+            time: time,
             u_name: user.n,
             u_phone: user.p
-        }));
-        setTimeout(() => tg.close(), 400);
+        };
+
+        // Telegramga ma'lumotni yuborish
+        tg.sendData(JSON.stringify(payload));
+        tg.close(); // Ilovani yopish
     }
 
     window.onload = () => {
-        const saved = localStorage.getItem('mw_user_data');
-        if(saved) {
-            document.getElementById('p-login').classList.remove('active');
-            document.getElementById('p-main').classList.add('active');
-            render();
-        }
+        if(localStorage.getItem('mw_user')) showMain();
     };
 </script>
 </body>
