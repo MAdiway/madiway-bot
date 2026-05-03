@@ -4,10 +4,10 @@ import datetime
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
-# --- KONFIGURATSIYA ---
+# --- SOZLAMALAR ---
 TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c"
-GROUP_ID = -1003996104316  # Guruh ID si
-CHANNEL_ID = "@MADIWAYy"    # Kanal ID si
+GROUP_ID = -1003996104316  # Guruh ID
+CHANNEL_ID = "@MADIWAYy"    # Kanal ID
 BANNER_URL = "https://raw.githubusercontent.com/madiway/madiway-bot/main/madiway_banner.png"
 WEB_APP_URL = "https://madiway.github.io/madiway-bot/"
 
@@ -23,18 +23,18 @@ async def start_handler(message: types.Message):
     caption = (
         "<b>🏔 MadiWay | Global Logistics 🚀</b>\n\n"
         "Xalqaro yuk tashish tizimiga xush kelibsiz!\n\n"
-        "Pastdagi tugmani bosing va ilova orqali yuk yuboring."
+        "Pastdagi tugmani bosing va ilova orqali yuk e'lonini yuboring."
     )
+    # HTML formatda rasm yuborish
     await bot.send_photo(message.chat.id, photo=BANNER_URL, caption=caption, reply_markup=kb, parse_mode="HTML")
 
 @dp.message_handler(content_types=['web_app_data'])
 async def web_app_data_handler(message: types.Message):
     try:
-        # Ilovadan kelgan ma'lumotlarni o'qiymiz
         data = json.loads(message.web_app_data.data)
         now = datetime.datetime.now().strftime("%d.%m.%Y | %H:%M")
         
-        # Xabar matnini tayyorlash (HTML formatida)
+        # Xabar matni (Faqat HTML)
         text = (
             f"🚛 <b>YANGI YUK E'LONI</b>\n"
             f"━━━━━━━━━━━━━━\n"
@@ -47,25 +47,23 @@ async def web_app_data_handler(message: types.Message):
             f"📅 <b>Sana:</b> {now}"
         )
 
-    # 1. KANALGA YUBORISH
+        # 1. KANALGA YUBORISH
         await bot.send_message(CHANNEL_ID, text, parse_mode="HTML")
 
-    # 2. GURUHGA (TOPICGA) YUBORISH
-        # data.get('t_id') - bu WebApp ichidan kelayotgan Topic ID si bo'lishi kerak
-        topic_id = data.get('t_id') 
-        
+        # 2. GURUHGA (TOPICGA) YUBORISH
+        topic_id = data.get('t_id') # Ilovadan kelayotgan Topic (Mavzu) ID si
         try:
-            # Agar t_id bo'lsa, o'sha mavzuga (Topic) yuboradi
             await bot.send_message(GROUP_ID, text, message_thread_id=topic_id, parse_mode="HTML")
         except:
-            # Agar t_id xato bo'lsa yoki Topic topilmasa, shunchaki guruhning o'ziga yuboradi
+            # Agar topic_id xato bo'lsa, oddiy guruhga yuboradi
             await bot.send_message(GROUP_ID, text, parse_mode="HTML")
 
-        await message.answer("✅ E'loningiz kanal va guruhga yuborildi!")
+        await message.answer("✅ E'loningiz muvaffaqiyatli yuborildi!")
 
     except Exception as e:
-        logging.error(f"Xato: {e}")
-        await message.answer("❌ Ma'lumot yuborishda xato yuz berdi.")
+        logging.error(f"Xato yuz berdi: {e}")
+        await message.answer("❌ Xatolik: Ma'lumotni qayta ishlashda muammo bo'ldi.")
 
 if __name__ == "__main__":
+    # skip_updates=True eski xabarlarni o'chirib yuboradi (Conflict-ni oldini oladi)
     executor.start_polling(dp, skip_updates=True)
