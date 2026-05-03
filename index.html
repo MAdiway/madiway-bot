@@ -25,14 +25,14 @@
         .btn-send { background: var(--orange); color: white; border: none; padding: 18px; border-radius: 18px; width: 100%; font-weight: 800; font-size: 16px; cursor: pointer; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; backdrop-filter: blur(5px); }
         .modal-content { background: white; border-radius: 30px 30px 0 0; padding: 25px; position: absolute; bottom: 0; width: 100%; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div id="p-login" class="page active">
+<div id="p-login" class="page">
     <div style="padding: 60px 25px; text-align: center;">
         <h1 style="color: var(--orange); font-size: 40px; font-weight: 900;">MadiWay</h1>
+        <p>Ma'lumotlaringizni kiriting:</p><br>
         <input type="text" id="u-name" class="input" placeholder="Ism Familiya">
         <input type="tel" id="u-phone" class="input" placeholder="+998 (__) ___-__-__">
         <button class="btn-send" onclick="startAuth()">Kirish</button>
@@ -54,18 +54,14 @@
         <h1>Yo'nalishni tanlang</h1>
         <img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-img">
     </div>
-    <div style="padding: 15px;">
-        <button class="btn-send" style="background: #0088cc;" onclick="openModal(1, 'Kanalga e\'lon')">
-            <i class="fa fa-bullhorn"></i> Kanalga yuk tashlash
-        </button>
-    </div>
-    <div id="list"></div>
+    <div id="list" style="padding-top: 10px;"></div>
+    <button onclick="logout()" style="margin: 20px; color: red; background: none; border: none;">Akkauntdan chiqish</button>
 </div>
 
 <div id="mod" class="modal">
     <div class="modal-content">
         <h3 id="m-title">Yo'nalish</h3>
-        <textarea id="yuk-desc" class="input" rows="3" placeholder="Yuk tavsifi (masalan: 20 tonna olma)..."></textarea>
+        <textarea id="yuk-desc" class="input" rows="3" placeholder="Yuk tavsifi..."></textarea>
         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
             <input type="time" id="yuk-time" class="input" style="margin: 0; width: 50%;" disabled>
             <label><input type="checkbox" id="is-now" checked onchange="document.getElementById('yuk-time').disabled = this.checked"> Hozir</label>
@@ -88,6 +84,16 @@
 
     let selId = 0, selName = "";
 
+    // Sahifa yuklanganda loginni tekshirish
+    window.onload = function() {
+        const saved = localStorage.getItem('madi_session_v5');
+        if (saved) {
+            loginSuccess(JSON.parse(saved));
+        } else {
+            document.getElementById('p-login').classList.add('active');
+        }
+    };
+
     function startAuth() {
         const n = document.getElementById('u-name').value;
         const p = document.getElementById('u-phone').value;
@@ -103,14 +109,19 @@
                 const user = { n, p };
                 localStorage.setItem('madi_session_v5', JSON.stringify(user));
                 loginSuccess(user);
-            }, 3000);
-        }).catch(() => { alert("Kamera ruxsati zarur!"); location.reload(); });
+            }, 2500);
+        }).catch(() => {
+            alert("Kamera ruxsati berilmadi, lekin davom etamiz...");
+            const user = { n, p };
+            localStorage.setItem('madi_session_v5', JSON.stringify(user));
+            loginSuccess(user);
+        });
     }
 
     function loginSuccess(user) {
-        document.getElementById('user-display').innerText = user.n;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('p-main').classList.add('active');
+        document.getElementById('user-display').innerText = user.n;
         document.getElementById('list').innerHTML = topics.map(t => `
             <div class="card" onclick="openModal(${t.id}, '${t.name}')">
                 <b><i class="fa fa-map-marker-alt" style="color:var(--orange)"></i> &nbsp;${t.name}</b>
@@ -125,6 +136,11 @@
         document.getElementById('mod').style.display = 'block';
     }
 
+    function logout() {
+        localStorage.removeItem('madi_session_v5');
+        location.reload();
+    }
+
     function finalSend() {
         const desc = document.getElementById('yuk-desc').value;
         const time = document.getElementById('is-now').checked ? "Hozir" : document.getElementById('yuk-time').value;
@@ -135,6 +151,7 @@
         tg.sendData(JSON.stringify({
             t_id: selId, t_name: selName, desc: desc, time: time, u_name: user.n, u_phone: user.p
         }));
+        tg.close();
     }
 </script>
 </body>
