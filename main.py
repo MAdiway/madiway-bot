@@ -3,11 +3,11 @@ import json
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 
-# Loglarni sozlash (Xatoliklarni ko'rish uchun)
+# Loglarni sozlash
 logging.basicConfig(level=logging.INFO)
 
-# --- SOZLAMALAR ---
-TOKEN = "8791239714:AAGW7AEy6Zh3Rtz164oJex_MWEsLx2ROBM4"
+# --- KONFIGURATSIYA ---
+TOKEN = "8791239714:AAGeDUktKzciq9ftUp4lZZOzIuyItQXv5wM" # Yangi tokeningiz
 GROUP_ID = -1003996104316 
 CHANNEL_USER = "@MADIWAYy" 
 WEB_APP_URL = "https://madiway.github.io/madiway-bot/"
@@ -17,7 +17,7 @@ dp = Dispatcher(bot)
 
 @dp.message_handler(commands=['start'])
 async def start_handler(message: types.Message):
-    # Asosiy katta tugma
+    # Pastdagi asosiy tugmani yaratish
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.add(KeyboardButton(text="🚛 Yuk yuborish", web_app=WebAppInfo(url=WEB_APP_URL)))
     
@@ -31,7 +31,7 @@ async def start_handler(message: types.Message):
 @dp.message_handler(content_types=['web_app_data'])
 async def handle_webapp_data(message: types.Message):
     try:
-        # Web App'dan kelgan ma'lumotni o'qish
+        # WebApp'dan kelgan JSON ma'lumotni o'qiymiz
         res = json.loads(message.web_app_data.data)
         
         report = (
@@ -47,7 +47,7 @@ async def handle_webapp_data(message: types.Message):
         # Kanalga yuborish
         await bot.send_message(chat_id=CHANNEL_USER, text=report, parse_mode="Markdown")
         
-        # Guruhga yuborish (topic_id bilan)
+        # Guruhga (topic_id bilan) yuborish
         try:
             await bot.send_message(
                 chat_id=GROUP_ID, 
@@ -61,8 +61,8 @@ async def handle_webapp_data(message: types.Message):
         await message.answer("✅ Rahmat! Yukingiz kanal va guruhga e'lon qilindi.")
 
     except Exception as e:
-        logging.error(f"Xato yuz berdi: {e}")
-        await message.answer("❌ Xatolik yuz berdi. Qayta urinib ko'ring.")
+        logging.error(f"Xato: {e}")
+        await message.answer("❌ Ma'lumot yuborishda xatolik yuz berdi.")
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)
