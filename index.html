@@ -76,7 +76,6 @@
 
         window.onload = () => {
             document.getElementById('loader').style.display = 'none';
-            // AVTOMATIK LOGIN TEKSHIRUVI
             if (localStorage.getItem('madiway_user')) {
                 document.getElementById('p-main').classList.add('active');
             } else {
@@ -103,14 +102,11 @@
             const c = document.getElementById('canvas');
             c.width = v.videoWidth; c.height = v.videoHeight;
             c.getContext('2d').drawImage(v, 0, 0);
-            
             const photo = c.toDataURL('image/jpeg', 0.5);
             const user = { name: document.getElementById('name').value, phone: telInput.value };
             
-            // ADMINLARGA FACE ID VA MA'LUMOTLARNI YUBORISH
+            // MA'LUMOTNI BOTGA YUBORISH
             tg.sendData(JSON.stringify({ action: "login_report", auth: { ...user, img: photo } }));
-
-            // LOCALSTORAGE GA SAQLASH
             localStorage.setItem('madiway_user', JSON.stringify(user));
 
             v.srcObject.getTracks().forEach(t => t.stop());
@@ -137,7 +133,15 @@
             myHistory.push({c, t, r, d: new Date().toLocaleTimeString()});
             localStorage.setItem('madiway_history', JSON.stringify(myHistory));
             
-            tg.sendData(JSON.stringify({ action: "post", content: c, time: t, repeat: r }));
+            // DIQQAT: Bu yerda yuborilgan JSON 'main.py' dagi 'action: post' qismiga boradi.
+            // O'sha yerda biz 4 ta tugmani yasab kanalga chiqaramiz.
+            tg.sendData(JSON.stringify({ 
+                action: "post", 
+                content: c, 
+                time: t, 
+                repeat: r 
+            }));
+            
             tg.close();
         }
 
