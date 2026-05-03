@@ -3,37 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MadiWay Logistics</title>
+    <title>MadiWay Dispatch</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/inputmask@5.0.7/dist/inputmask.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --orange: #FF6B00; --bg: #F2F2F7; --blue: #0088cc; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
-        body { background: var(--bg); }
-        .page { display: none; padding-bottom: 30px; animation: fadeIn 0.2s; }
-        .active { display: block !important; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #DDD; }
-        .promo { padding: 20px; position: relative; background: white; height: 140px; }
-        .truck-img { position: absolute; right: -15px; bottom: 0; width: 160px; }
-        .topic-list { padding: 15px; }
-        .card { background: white; padding: 16px; border-radius: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #E5E5EA; }
-        .input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #C7C7CC; margin: 8px 0; outline: none; font-size: 16px; }
-        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; margin-top: 8px; }
-        .btn-orange { background: var(--orange); color: white; }
-        .btn-blue { background: var(--blue); color: white; }
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px; backdrop-filter: blur(8px); }
-        .modal-content { background: white; border-radius: 24px; padding: 20px; margin-top: 15%; }
-        .row { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-weight: 600; }
-        #v-cont { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--orange); margin: 15px auto; overflow: hidden; display: none; }
+        :root { --orange: #FF6B00; --bg: #F2F2F7; }
+        body { background: var(--bg); font-family: -apple-system, sans-serif; padding: 15px; margin: 0; }
+        .page { display: none; }
+        .active { display: block; }
+        .card { background: white; padding: 16px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #E5E5EA; }
+        .input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #C7C7CC; margin: 8px 0; font-size: 16px; outline: none; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+        .btn-orange { background: var(--orange); }
+        .btn-blue { background: #0088cc; margin-top: 8px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; backdrop-filter: blur(4px); }
+        .modal-content { background: white; border-radius: 20px; padding: 20px; margin: 15% 20px; }
+        #v-cont { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--orange); margin: 15px auto; overflow: hidden; display: none; }
     </style>
 </head>
 <body>
 
 <div id="p-login" class="page active">
-    <div style="padding: 40px 20px; text-align: center; background: white; min-height: 100vh;">
-        <h1 style="color:var(--orange); font-size: 36px;">MadiWay</h1>
+    <div style="text-align: center; background: white; padding: 30px 20px; border-radius: 20px; border: 1px solid #DDD;">
+        <h1 style="color:var(--orange)">MadiWay</h1>
         <div id="v-cont"><video id="video" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video></div>
         <input type="text" id="u-name" class="input" placeholder="Ism Familiya">
         <input type="tel" id="u-phone" class="input" placeholder="+998 (__) ___-__-__">
@@ -42,23 +35,22 @@
 </div>
 
 <div id="p-main" class="page">
-    <div class="header"><b id="un">...</b><i class="fa-solid fa-truck" style="color:var(--orange)"></i></div>
-    <div class="promo"><h2>Tezkor<br>Yuklar</h2><img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-img"></div>
-    <div class="topic-list" id="list"></div>
+    <h3 style="margin-bottom: 15px;">Yo'nalishni tanlang:</h3>
+    <div id="list"></div>
 </div>
 
 <div id="mod" class="modal">
     <div class="modal-content">
-        <h3 id="mt">Yo'nalish</h3>
+        <h3 id="mt">Manzil</h3>
         <textarea id="desc" class="input" rows="3" placeholder="Yuk haqida ma'lumot..."></textarea>
-        <div class="row">
+        <div style="display:flex; align-items:center; gap:8px; margin: 10px 0;">
             <input type="checkbox" id="now" checked onchange="document.getElementById('time').disabled = this.checked">
-            <label for="now">Hozir (Tezkor)</label>
+            <label for="now" style="font-weight: 600;">Hozir yuborish</label>
         </div>
         <input type="time" id="time" class="input" disabled>
         <button class="btn btn-orange" onclick="send('group')">Guruhga yuborish</button>
         <button class="btn btn-blue" onclick="send('channel')">Kanalga yuborish</button>
-        <button onclick="document.getElementById('mod').style.display='none'" style="width:100%; margin-top:10px; border:none; background:none; color:#8e8e93;">Bekor qilish</button>
+        <button onclick="document.getElementById('mod').style.display='none'" style="width:100%; margin-top:10px; border:none; background:none; color:gray;">Bekor qilish</button>
     </div>
 </div>
 
@@ -68,22 +60,24 @@
     Inputmask({"mask": "+998 (99) 999-99-99"}).mask(document.getElementById('u-phone'));
 
     const topics = [
-        {n:"Rossiya", id:4}, {n:"Europa", id:2}, {n:"Qirg'iziston", id:6}, {n:"Kazakistan", id:8},
-        {n:"Eron", id:10}, {n:"Tojikston", id:12}, {n:"Germaniya", id:14}, {n:"Belarus", id:16}
+        {n:"Rossiya", id:4}, {n:"Europa", id:2}, {n:"Ozarbayjon", id:6}, {n:"Kazakistan", id:8},
+        {n:"Eron", id:10}, {n:"Tojikston", id:12}, {n:"Germaniya", id:14}, {n:"O'zbekiston", id:16}
     ];
 
-    let tid = 0; let tn = "";
+    let tid = 0, tn = "";
 
     async function auth() {
         const n = document.getElementById('u-name').value;
         const p = document.getElementById('u-phone').value;
-        if(n.split(' ').length < 2 || !Inputmask.isValid(p, {"mask": "+998 (99) 999-99-99"})) return tg.showAlert("Ma'lumotlarni to'ldiring!");
+        if(n.split(' ').length < 2 || p.includes('_')) return alert("Ma'lumotlarni to'liq kiriting!");
+        
         document.getElementById('v-cont').style.display = 'block';
-        const s = await navigator.mediaDevices.getUserMedia({video:true});
-        document.getElementById('video').srcObject = s;
+        const stream = await navigator.mediaDevices.getUserMedia({video:true});
+        document.getElementById('video').srcObject = stream;
+        
         setTimeout(() => {
-            s.getTracks().forEach(t => t.stop());
-            localStorage.setItem('madi_v15', JSON.stringify({n, p}));
+            stream.getTracks().forEach(t => t.stop());
+            localStorage.setItem('mw_user_data', JSON.stringify({n, p}));
             location.reload();
         }, 2000);
     }
@@ -91,7 +85,7 @@
     function render() {
         document.getElementById('list').innerHTML = topics.map(t => `
             <div class="card" onclick="openM(${t.id}, '${t.n}')">
-                <span><b>${t.n}</b></span><i class="fa-solid fa-chevron-right" style="color:#CCC"></i>
+                <b>${t.n}</b><i class="fa-solid fa-angle-right" style="color:#C7C7CC"></i>
             </div>
         `).join('');
     }
@@ -102,9 +96,9 @@
         const d = document.getElementById('desc').value;
         const isNow = document.getElementById('now').checked;
         const t = isNow ? "Hozir" : document.getElementById('time').value;
-        if(!d || (!isNow && !t)) return tg.showAlert("Ma'lumotni to'ldiring!");
-        const user = JSON.parse(localStorage.getItem('madi_v15'));
+        if(!d) return alert("Yuk haqida ma'lumot yozing!");
         
+        const user = JSON.parse(localStorage.getItem('mw_user_data'));
         tg.sendData(JSON.stringify({
             target: target,
             t_id: tid,
@@ -114,15 +108,14 @@
             u_name: user.n,
             u_phone: user.p
         }));
-        setTimeout(() => tg.close(), 500);
+        setTimeout(() => tg.close(), 400);
     }
 
     window.onload = () => {
-        const s = localStorage.getItem('madi_v15');
-        if(s) {
+        const saved = localStorage.getItem('mw_user_data');
+        if(saved) {
             document.getElementById('p-login').classList.remove('active');
             document.getElementById('p-main').classList.add('active');
-            document.getElementById('un').innerText = JSON.parse(s).n;
             render();
         }
     };
