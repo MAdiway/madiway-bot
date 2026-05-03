@@ -3,105 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MadiWay App</title>
+    <title>MadiWay Professional v4</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --orange: #FF6B00; --dark: #121212; --gray: #F5F7F9; }
-        body { background: var(--gray); font-family: -apple-system, sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        :root { --orange: #FF6B00; --red: #FF3B30; --bg: #F2F4F7; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); color: #1C1C1E; overflow: hidden; }
 
-        .page { display: none; animation: fadeIn 0.4s ease; padding-bottom: 30px; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .page { display: none; height: 100vh; overflow-y: auto; padding-bottom: 90px; }
+        .active { display: block !important; }
 
-        /* Header dizayni */
-        .header { background: white; padding: 30px 20px; border-radius: 0 0 35px 35px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .header h1 { font-size: 24px; margin: 0; font-weight: 800; width: 60%; }
-        /* SIZ AYTGAN DAF FURA RASMI */
-        .truck-header { position: absolute; right: -10px; bottom: 10px; width: 220px; z-index: 1; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15)); }
+        /* Login UI */
+        .login-card { padding: 40px 25px; text-align: center; }
+        .input-box { margin-bottom: 15px; text-align: left; }
+        .input-box label { display: block; margin: 0 0 8px 5px; font-weight: 700; font-size: 14px; }
+        .input { 
+            width: 100%; padding: 18px; border-radius: 18px; border: 2px solid #EEE; 
+            font-size: 16px; outline: none; transition: 0.3s;
+        }
+        .input:focus { border-color: var(--orange); }
+        .input.error { border-color: var(--red); background: #FFF5F5; }
+        .err-msg { color: var(--red); font-size: 12px; margin: 5px 0 0 5px; display: none; }
 
-        .input-group { padding: 20px; }
-        .p-input { width: 100%; padding: 18px; border-radius: 18px; border: 2px solid #EEE; background: white; font-size: 16px; outline: none; margin-bottom: 15px; }
-        .p-input:focus { border-color: var(--orange); }
+        /* Banner */
+        .banner { background: white; padding: 30px 20px; border-radius: 0 0 40px 40px; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        .truck-img { position: absolute; right: -10px; bottom: 5px; width: 180px; }
 
-        .btn-main { width: 90%; margin: 0 5%; padding: 20px; border: none; border-radius: 20px; background: var(--orange); color: white; font-weight: 800; font-size: 18px; }
+        /* Face ID */
+        .scan-window { width: 240px; height: 240px; border-radius: 50%; border: 5px solid var(--orange); margin: 30px auto; position: relative; overflow: hidden; background: #000; }
+        #video { width: 100%; height: 100%; object-fit: cover; }
+        .scan-line { position: absolute; width: 100%; height: 4px; background: var(--orange); top: 0; animation: scan 2s infinite; }
+        @keyframes scan { from { top: 0; } to { top: 100%; } }
 
-        /* Topic Grid */
-        .topic-grid { padding: 20px; display: grid; gap: 12px; }
-        .topic-card { background: white; padding: 20px; border-radius: 22px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
-        .flag { font-size: 28px; margin-right: 15px; }
+        /* Smart Bot */
+        .bot-card { background: #E3F2FD; padding: 20px; border-radius: 25px; margin: 15px; border: 2px dashed #2196F3; }
+        .btn-main { width: 100%; padding: 18px; border-radius: 18px; border: none; background: var(--orange); color: white; font-weight: 800; font-size: 17px; cursor: pointer; }
+
+        .nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0 30px; border-top: 1px solid #EEE; }
+        .nav-item { text-align: center; color: #BBB; font-size: 11px; font-weight: 700; }
+        .nav-item.active { color: var(--orange); }
     </style>
 </head>
 <body>
 
-    <!-- Kirish -->
-    <div id="p-login" class="page active" style="padding: 50px 20px;">
-        <h1 style="font-size: 30px;">Xush kelibsiz</h1>
-        <p style="color: #666; margin-bottom: 30px;">Tizimga kirish uchun Face ID skaneridan o'ting.</p>
-        <input type="text" id="u-name" class="p-input" placeholder="Ism Familiya">
-        <input type="tel" id="u-phone" class="p-input" placeholder="+998 (__) ___-__-__">
-        <button class="btn-main" onclick="openCam()">Davom etish 📸</button>
-    </div>
-
-    <!-- Face ID -->
-    <div id="p-face" class="page" style="text-align: center; padding: 40px 20px;">
-        <h2>Face ID Skaner</h2>
-        <video id="video" style="width: 250px; height: 250px; border-radius: 50%; border: 4px solid var(--orange); object-fit: cover;" autoplay playsinline></video>
-        <button class="btn-main" style="margin-top: 30px;" onclick="completeFace()">Skanerlash</button>
-    </div>
-
-    <!-- Asosiy (Topiclar) -->
-    <div id="p-main" class="page">
-        <div class="header">
-            <h1>Yuk yo'nalishini tanlang</h1>
-            <!-- SIZ AYTGAN DAF FURA RASMI -->
-            <img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-header">
+<div id="p-login" class="page active">
+    <div class="login-card">
+        <h1 style="font-size: 38px; color: var(--orange); font-weight: 900;">MadiWay</h1>
+        <p style="color: gray; margin-bottom: 30px;">Xavfsiz kirish tizimi</p>
+        
+        <div class="input-box">
+            <label>Ism Familiya</label>
+            <input type="text" id="u-name" class="input" placeholder="Yusufxon Axmatov">
+            <div id="e-name" class="err-msg">Ismni to'liq kiriting!</div>
         </div>
-        <div class="topic-grid">
-            <div class="topic-card" onclick="goForm('Europe')"><span><span class="flag">🇪🇺</span><b>Europe</b></span> <span>🚀</span></div>
-            <div class="topic-card" onclick="goForm('Rossiya')"><span><span class="flag">🇷🇺</span><b>Rossiya</b></span> <span>🚀</span></div>
-            <div class="topic-card" onclick="goForm('Qirg\'iziston')"><span><span class="flag">🇰🇬</span><b>Qirg'iziston</b></span> <span>🚀</span></div>
-            <div class="topic-card" onclick="goForm('Kazakistan')"><span><span class="flag">🇰🇿</span><b>Kazakistan</b></span> <span>🚀</span></div>
-            <div class="topic-card" onclick="goForm('Eron')"><span><span class="flag">🇮🇷</span><b>Eron</b></span> <span>🚀</span></div>
-            <div class="topic-card" onclick="goForm('Tojikston')"><span><span class="flag">🇹🇯</span><b>Tojikston</b></span> <span>🚀</span></div>
-            <div class="topic-card" onclick="goForm('Germaniya')"><span><span class="flag">🇩🇪</span><b>Germaniya</b></span> <span>🚀</span></div>
-            <div class="topic-card" onclick="goForm('Belarusiya')"><span><span class="flag">🇧🇾</span><b>Belarusiya</b></span> <span>🚀</span></div>
-            <div class="topic-card" onclick="goForm('Gruziya')"><span><span class="flag">🇬🇪</span><b>Gruziya</b></span> <span>🚀</span></div>
-            <div class="topic-card" onclick="goForm('Ukraina')"><span><span class="flag">🇺🇦</span><b>Ukraina</b></span> <span>🚀</span></div>
+
+        <div class="input-box">
+            <label>Telefon raqam</label>
+            <input type="tel" id="u-phone" class="input" value="+998" maxlength="13">
+            <div id="e-phone" class="err-msg">Raqam hato! (+998901234567)</div>
         </div>
+
+        <button class="btn-main" onclick="checkAndScan()">Face ID bilan kirish</button>
+    </div>
+</div>
+
+<div id="p-scan" class="page" style="text-align: center; padding-top: 50px;">
+    <h2>Skanerlanmoqda...</h2>
+    <div class="scan-window">
+        <video id="video" autoplay playsinline></video>
+        <div class="scan-line"></div>
+    </div>
+    <p id="scan-text">Kameraga qarab turing</p>
+</div>
+
+<div id="p-main" class="page">
+    <div class="banner">
+        <p>Salom, <span id="u-display" style="color: var(--orange); font-weight: bold;">...</span></p>
+        <h1 style="font-size: 26px;">Aqlli yuk tashish <br>boshqaruviga xush kelibsiz!</h1>
+        <img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-img">
     </div>
 
-    <canvas id="canvas" style="display:none;"></canvas>
+    <div class="bot-card">
+        <h3 style="color: #1976D2;"><i class="fa fa-robot"></i> Smart Auto-Bot</h3>
+        <textarea id="bot-msg" class="input" rows="3" placeholder="Rossiya, 20 tonna fura kerak..."></textarea>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="time" id="bot-time" class="input" style="margin:0; flex:1;">
+            <label style="font-size: 12px; flex:1;"><input type="checkbox" id="bot-now" checked> Hozir yuborish</label>
+        </div>
+        <select id="bot-repeat" class="input">
+            <option value="1">1 marta</option>
+            <option value="3">3 marta qaytarish</option>
+            <option value="6">6 marta qaytarish</option>
+        </select>
+        <button class="btn-main" style="background: #2196F3;" onclick="startAutoBot()">Botni yuborish</button>
+    </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        let currentTopic = "";
+    <div id="topics" style="padding: 15px;"></div>
+</div>
 
-        // Telefon maskasi
-        document.getElementById('u-phone').addEventListener('input', (e) => {
-            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,2})(\d{0,3})(\d{0,2})(\d{0,2})/);
-            e.target.value = !x[2] ? '+998 (' : '+998 (' + x[2] + (x[3] ? ') ' + x[3] : '') + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
-        });
+<nav class="nav" id="main-nav" style="display: none;">
+    <div class="nav-item active"><i class="fa fa-truck"></i><br>Yuklar</div>
+    <div class="nav-item" onclick="alert('Profil')"><i class="fa fa-user"></i><br>Profil</div>
+</nav>
 
-        async function openCam() {
-            const s = await navigator.mediaDevices.getUserMedia({ video: true });
-            document.getElementById('video').srcObject = s;
-            showPage('p-face');
+<script>
+    const tg = window.Telegram.WebApp;
+    const ADMIN_ID = 5406082447;
+    const myID = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 0;
+
+    const topics = [
+        {name:"Europa", id:2}, {name:"Rossiya", id:4}, {name:"Qirg'iziston", id:6},
+        {name:"Kazakistan", id:8}, {name:"Eron", id:10}, {name:"Tojikston", id:12},
+        {name:"Germaniya", id:14}, {name:"Belarusiya", id:16}, {name:"Gruziya", id:18}, {name:"Ukraina", id:20}
+    ];
+
+    function checkAndScan() {
+        const name = document.getElementById('u-name');
+        const phone = document.getElementById('u-phone');
+        const phoneRegex = /^\+998\d{9}$/;
+
+        let ok = true;
+        if(name.value.length < 3) { name.classList.add('error'); document.getElementById('e-name').style.display='block'; ok=false; }
+        if(!phoneRegex.test(phone.value)) { phone.classList.add('error'); document.getElementById('e-phone').style.display='block'; ok=false; }
+
+        if(ok) startScan();
+    }
+
+    async function startScan() {
+        document.getElementById('p-login').classList.remove('active');
+        document.getElementById('p-scan').classList.add('active');
+        const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user"}});
+        document.getElementById('video').srcObject = stream;
+
+        setTimeout(() => {
+            const user = { name: document.getElementById('u-name').value, phone: document.getElementById('u-phone').value, id: myID };
+            localStorage.setItem('madi_auth_v4', JSON.stringify(user));
+            stream.getTracks().forEach(t => t.stop());
+            location.reload();
+        }, 3000);
+    }
+
+    function startAutoBot() {
+        const msg = document.getElementById('bot-msg').value.toLowerCase();
+        const repeat = document.getElementById('bot-repeat').value;
+        const now = document.getElementById('bot-now').checked;
+        
+        let found = topics.find(t => msg.includes(t.name.toLowerCase()));
+        if(!found) return alert("Yo'nalish topilmadi! Iltimos, davlat nomini yozing.");
+
+        tg.sendData(JSON.stringify({
+            action: "auto_yuk",
+            topic_id: found.id,
+            topic_name: found.name,
+            text: msg,
+            repeat: repeat,
+            now: now,
+            time: document.getElementById('bot-time').value
+        }));
+        tg.showAlert("Bot yukni qabul qildi!");
+    }
+
+    window.onload = () => {
+        const auth = localStorage.getItem('madi_auth_v4');
+        if(auth) {
+            const user = JSON.parse(auth);
+            document.getElementById('u-display').innerText = user.name;
+            document.getElementById('main-nav').style.display = 'flex';
+            document.getElementById('p-login').classList.remove('active');
+            document.getElementById('p-main').classList.add('active');
+            
+            document.getElementById('topics').innerHTML = topics.map(t => `
+                <div style="background:white; padding:15px; border-radius:15px; margin-bottom:10px; display:flex; justify-content:space-between;">
+                    <b>${t.name}</b> <i class="fa fa-arrow-right" style="color:var(--orange)"></i>
+                </div>
+            `).join('');
         }
-
-        function completeFace() {
-            // Rasmga olish va botga yuborish logikasi shu yerda
-            showPage('p-main');
-        }
-
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        function goForm(topic) {
-            alert(topic + " uchun yuk joylash tanlandi!");
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
