@@ -2,44 +2,52 @@ import asyncio
 import json
 from aiogram import Bot, Dispatcher, types, F
 
-# O'zingizning ma'lumotlaringizni qo'ying
 TOKEN = "7299092416:AAFTYm1L_5y7X-m2yU6nK-35wYFjK5W5yA8"
-GROUP_ID = -1002444342416  # Guruhingiz ID sini aniq tekshiring (-100 bilan boshlanishi shart)
+GROUP_ID = -1003963001370  # Sening guruhing ID-si
+CHANNEL_ID = "@MADIWAY_Gr" # Kanal username yoki ID-si (Guruh bilan bir xil bo'lsa ham yuboradi)
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
 @dp.message(F.content_type == types.ContentType.WEB_APP_DATA)
-async def web_app_handler(message: types.Message):
+async def handle_madiway_data(message: types.Message):
     try:
-        # Ilovadan kelgan ma'lumotni o'qiymiz
         res = json.loads(message.web_app_data.data)
         
-        topic_id = res.get('t_id')
-        msg_body = (
+        # Chiroyli xabar matni
+        report = (
             f"🚛 **YANGI YUK BILDIRNOMASI**\n\n"
-            f"👤 Mijoz: {res['user']}\n"
-            f"📞 Tel: {res['phone']}\n"
-            f"📦 Yuk: {res['text']}\n"
-            f"⏰ Vaqt: Hozir"
+            f"📍 **Yo'nalish:** {res['t_name']}\n"
+            f"👤 **Mijoz:** {res['u_name']}\n"
+            f"📞 **Telefon:** {res['u_phone']}\n"
+            f"📦 **Yuk:** {res['desc']}\n"
+            f"🕒 **Vaqt:** {message.date.strftime('%H:%M')}\n\n"
+            f"#MadiWay #YukE'lon"
         )
 
-        # TOPIKGA YUBORISH (message_thread_id parametrit muhim)
+        # 1. GURUHGA YUBORISH (Aynan o'sha TOPIC-ga)
         await bot.send_message(
             chat_id=GROUP_ID,
-            message_thread_id=topic_id,
-            text=msg_body,
+            message_thread_id=res['t_id'],
+            text=report,
+            parse_mode="Markdown"
+        )
+
+        # 2. KANALGA YUBORISH (Umumiy lenta uchun)
+        # Agar kanal va guruh bitta bo'lsa, bu umumiy (General) qismga tushishi mumkin
+        await bot.send_message(
+            chat_id=CHANNEL_ID,
+            text=report,
             parse_mode="Markdown"
         )
         
-        await message.answer("✅ Muvaffaqiyatli yuborildi!")
-        
+        await message.answer("✅ Yukingiz guruh va kanalga joylandi!")
+
     except Exception as e:
-        # Agar xato bo'lsa, foydalanuvchiga xabar beradi
-        await message.answer(f"❌ Xatolik: {str(e)}\nBot guruhda admin ekanligini tekshiring!")
+        await message.answer(f"❌ Xatolik yuz berdi: {str(e)}")
 
 async def main():
-    print("Bot ishga tushdi...")
+    print("MadiWay Bot ishga tushdi...")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
