@@ -16,7 +16,6 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
-# --- TAQIQLANGAN SO'ZLAR ---
 BAD_WORDS = ["jalab", "qo'toq", "am", "qotoq", "iflos", "yaramas", "dalbayob", "axmoq", "gandon", "pider"]
 
 # --- START BUYRUG'I ---
@@ -26,8 +25,9 @@ async def start_handler(message: types.Message):
         InlineKeyboardButton(text="🚛 MadiWay Ilovasi", web_app=WebAppInfo(url=WEB_APP_URL))
     )
     
+    # Markdown xatolarini oldini olish uchun oddiy matn
     caption = (
-        "🏔 **MadiWay | Global Logistics** 🚀\n\n"
+        "🏔 MadiWay | Global Logistics 🚀\n\n"
         "Xalqaro yuk tashish tizimiga xush kelibsiz!\n\n"
         "Pastdagi tugmani bosing va Face ID orqali tizimga kiring.\n\n"
         "📢 Kanal: T.me/MADIWAYy\n"
@@ -35,10 +35,12 @@ async def start_handler(message: types.Message):
     )
     
     try:
-        await bot.send_photo(message.chat.id, photo=BANNER_URL, caption=caption, reply_markup=kb, parse_mode="Markdown")
+        # Avval rasmli yuborishni sinaymiz
+        await bot.send_photo(message.chat.id, photo=BANNER_URL, caption=caption, reply_markup=kb)
     except Exception as e:
-        logging.error(f"Xato: {e}")
-        await message.answer(caption, reply_markup=kb, parse_mode="Markdown")
+        logging.error(f"Rasm yuborishda xato: {e}")
+        # Rasmda xato bo'lsa, faqat matnni yuboramiz
+        await message.answer(caption, reply_markup=kb)
 
 # --- WEB APP MA'LUMOTI ---
 @dp.message_handler(content_types=['web_app_data'])
@@ -48,38 +50,38 @@ async def web_app_data_handler(message: types.Message):
         now = datetime.datetime.now().strftime("%d.%m.%Y | %H:%M")
         
         text = (
-            f"🚛 **YANGI YUK E'LONI**\n"
+            f"🚛 YANGI YUK E'LONI\n"
             f"━━━━━━━━━━━━━━\n"
-            f"📍 **Yo'nalish:** #{data.get('t_name')}\n"
-            f"📦 **Yuk:** {data.get('desc')}\n"
-            f"⏰ **Vaqt:** {data.get('time')}\n"
+            f"📍 Yo'nalish: #{data.get('t_name')}\n"
+            f"📦 Yuk: {data.get('desc')}\n"
+            f"⏰ Vaqt: {data.get('time')}\n"
             f"━━━━━━━━━━━━━━\n"
-            f"👤 **Yuboruvchi:** {data.get('u_name')}\n"
-            f"📞 **Tel:** {data.get('u_phone')}\n"
-            f"📅 **Sana:** {now}"
+            f"👤 Yuboruvchi: {data.get('u_name')}\n"
+            f"📞 Tel: {data.get('u_phone')}\n"
+            f"📅 Sana: {now}"
         )
 
         kb = InlineKeyboardMarkup().add(
             InlineKeyboardButton("💬 Bog'lanish", url=f"tg://user?id={message.from_user.id}")
         )
 
-        await bot.send_message(CHANNEL_ID, text, reply_markup=kb, parse_mode="Markdown")
+        await bot.send_message(CHANNEL_ID, text, reply_markup=kb)
         try:
-            await bot.send_message(GROUP_ID, text, message_thread_id=data.get('t_id'), reply_markup=kb, parse_mode="Markdown")
+            # Topic ID bilan guruhga yuborish
+            await bot.send_message(GROUP_ID, text, message_thread_id=data.get('t_id'), reply_markup=kb)
         except:
-            await bot.send_message(GROUP_ID, text, reply_markup=kb, parse_mode="Markdown")
+            await bot.send_message(GROUP_ID, text, reply_markup=kb)
 
         await message.answer("✅ E'loningiz qabul qilindi!")
     except Exception as e:
         logging.error(f"WebData xatosi: {e}")
 
-# --- GURUH MODERATSIYASI ---
+# --- MODERATSIYA ---
 @dp.message_handler(chat_id=GROUP_ID)
 async def group_cleaner(message: types.Message):
     if not message.text: return
     txt = message.text.lower()
     
-    # Adminlar (Yusufxon va @madiways) uchun filtr ishlamaydi
     if message.from_user.username in ["yusufxonpro1", "madiways"]: return
 
     is_bad = any(word in txt for word in BAD_WORDS)
@@ -88,17 +90,11 @@ async def group_cleaner(message: types.Message):
     if is_bad or is_promo:
         try:
             await message.delete()
-            if is_bad:
-                until = datetime.datetime.now() + datetime.timedelta(days=2)
-                await bot.restrict_chat_member(GROUP_ID, message.from_user.id, until_date=until)
-                warn = await message.answer(f"🚫 {message.from_user.full_name} 2 kunga ban qilindi.")
-            else:
-                warn = await message.answer(f"⚠️ {message.from_user.full_name}, reklamaga ruxsat yo'q!")
-            
+            warn = await message.answer(f"⚠️ @{message.from_user.username} qoidalarni buzmang!")
             await asyncio.sleep(5)
             await warn.delete()
         except: pass
 
 if __name__ == "__main__":
-    # skip_updates=True eski "tiqilib" qolgan xabarlarni tozalaydi
+    # skip_updates=True — start bosganda javob kelmasligini davolaydi
     executor.start_polling(dp, skip_updates=True)
