@@ -2,83 +2,98 @@ import logging
 import json
 import datetime
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
-# Sozlamalar
-TOKEN = "8791239714:AAGeDUktKzciq9ftUp4lZZOzIuyItQXv5wM" 
-GROUP_ID = -1003996104316 
-CHANNEL_ID = "@MADIWAYy" 
+# --- ASOSIY SOZLAMALAR ---
+TOKEN = "8791239714:AAGeDUktKzciq9ftUp4lZZOzIuyItQXv5wM"
+GROUP_ID = -1003996104316
+CHANNEL_ID = "@MADIWAYy"
 BANNER_URL = "https://raw.githubusercontent.com/madiway/madiway-bot/main/madiway_banner.png"
+WEB_APP_URL = "https://madiway.github.io/madiway-bot/"
 
+# --- SO'KINISHLAR VA TAQIQLANGAN SO'ZLAR RO'YXATI ---
+BAD_WORDS = [
+    "sokish1", "sokish2", "jalab", "skachat", "qo'toq", "am", "qotoq", "shalpang", 
+    "iflos", "yaramas", "itdan tarqagan", "dalbayob", "axmoq", "onangni", "otangni", 
+    "gey", "pider", "gandon", "lox", "tovuqmiya", "manqurt", "qaltis", "beshaka"
+]
+
+logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
-# So'kinishlar ro'yxati (Buni kengaytirishingiz mumkin)
-BAD_WORDS = ["sokish1", "yomon_soz", "admin_emas , "jalab , oneniami" , "yiban , "ko't , "skaman , "pidaraz , "ko'tingdi qis , skachat", "qo'toq", "am", "qotoq", "shalpang", 
-    "iflos", "yaramas", "itdan tarqagan", "dalbayob", "axmoq", "onangni", "otangni", 
-    "gey", "pider", "gandon", "lox", "tovuqmiya", "manqurt", "qaltis", "beshaka"
-"]
-
+# --- START BUYRUG'I (BANNER VA TUGMA BILAN) ---
 @dp.message_handler(commands=['start'])
 async def start_handler(message: types.Message):
-    kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(KeyboardButton(text="🚛 Yuk yuborish", web_app=WebAppInfo(url="Sizning_URL")))
+    start_kb = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(text="🚛 Ilovaga kirish", web_app=WebAppInfo(url=WEB_APP_URL))
+    )
     
     caption = (
         "🏔 **MadiWay | Global Logistics & Dispatch 🚀**\n\n"
         "Xalqaro yuk tashish va professional dispetcherlik xizmatlari tarmog'iga xush kelibsiz!\n"
+        "Biz to'rtta davlatni yagona xavfsiz marshrut bilan bog'laymiz:\n\n"
+        "🌍 **Bizning yo'nalishlar:**\n"
         "📍 O'zbekiston 🇺🇿, Qozog'iston 🇰🇿, Rossiya 🇷🇺, Ozarbayjon 🇦🇿\n\n"
-        "🚛 **MadiWay — Sizning yukingiz, bizning mas'uliyatimiz!**"
+        "🚛 **MadiWay — Sizning yukingiz, bizning mas'uliyatimiz!**\n"
+        "📥 @Madiways | 👥 @MADIWAY_Gr"
     )
-    await bot.send_photo(chat_id=message.chat.id, photo=BANNER_URL, caption=caption, reply_markup=kb, parse_mode="Markdown")
+    
+    try:
+        await bot.send_photo(message.chat.id, photo=BANNER_URL, caption=caption, reply_markup=start_kb, parse_mode="Markdown")
+    except:
+        await message.answer(caption, reply_markup=start_kb, parse_mode="Markdown")
 
+# --- YUK YUBORISH (WEB APP DAN KELGAN DATA) ---
 @dp.message_handler(content_types=['web_app_data'])
 async def handle_webapp_data(message: types.Message):
-    res = json.loads(message.web_app_data.data)
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    data = json.loads(message.web_app_data.data)
+    now = datetime.datetime.now().strftime("%d.%m.%Y | %H:%M")
     
     report = (
         f"🚛 **YANGI YUK E'LONI**\n\n"
-        f"📍 Yo'nalish: #{res['t_name']}\n"
-        f"📦 Tavsif: {res['desc']}\n"
-        f"⏰ Vaqt: {res['time']}\n"
-        f"👤 Yuboruvchi: {res['u_name']}\n"
-        f"📅 Sana: {now}\n"
+        f"📍 Yo'nalish: #{data['t_name']}\n"
+        f"📦 Tavsif: {data['desc']}\n"
+        f"⏰ Vaqt: {data['time']}\n"
+        f"👤 Yuboruvchi: {data['u_name']}\n"
+        f"📅 Sana: {now}"
     )
 
-    # Kanal uchun 5 ta maxsus tugma
-    channel_kb = InlineKeyboardMarkup(row_width=2)
-    channel_kb.add(
+    kb = InlineKeyboardMarkup(row_width=2).add(
         InlineKeyboardButton("🤖 Bot", url="https://t.me/MADIWAYy_bot"),
-        InlineKeyboardButton("📩 Yukni egasi (Lichka)", url=f"tg://user?id={message.from_user.id}"),
-        InlineKeyboardButton("📞 Yukchi raqami", callback_data=f"show_tel_{res['u_phone']}"),
+        InlineKeyboardButton("📩 Lichka", url=f"tg://user?id={message.from_user.id}"),
+        InlineKeyboardButton("📞 Raqam", callback_data=f"tel_{data['u_phone']}"),
         InlineKeyboardButton("📢 Kanal", url="https://t.me/MADIWAYy"),
         InlineKeyboardButton("👥 Guruh", url="https://t.me/MADIWAY_Gr")
     )
 
-    await bot.send_message(chat_id=CHANNEL_ID, text=report, reply_markup=channel_kb, parse_mode="Markdown")
+    await bot.send_message(CHANNEL_ID, report, reply_markup=kb, parse_mode="Markdown")
     try:
-        await bot.send_message(chat_id=GROUP_ID, message_thread_id=res['t_id'], text=report)
+        await bot.send_message(GROUP_ID, report, message_thread_id=data['t_id'])
     except:
-        await bot.send_message(chat_id=GROUP_ID, text=report)
+        await bot.send_message(GROUP_ID, report)
 
-# Guruh filtri (Reklama va So'kinish uchun)
+# --- GURUH FILTRI (SO'KINISH VA REKLAMA) ---
 @dp.message_handler(chat_id=GROUP_ID)
-async def monitor_group(message: types.Message):
-    if message.from_user.is_bot: return
+async def group_filter(message: types.Message):
+    if not message.text: return
+    text = message.text.lower()
     
-    # Reklama tekshiruvi (faqat adminlarga mumkin)
-    if ("http" in message.text or "@" in message.text) and not (message.from_user.username in ["madiways", "yusufxonpro1"]):
-        await message.delete()
+    # Adminlarni tekshirmaymiz
+    if message.from_user.username in ["yusufxonpro1", "madiways"]:
         return
 
-    # So'kinish tekshiruvi
-    if any(word in message.text.lower() for word in BAD_WORDS):
+    # Reklama yoki so'kinishni aniqlash
+    has_bad_word = any(word in text for word in BAD_WORDS)
+    has_link = "http" in text or "@" in text
+
+    if has_bad_word or has_link:
         await message.delete()
-        # 2 kunga ban qilish
-        until = datetime.datetime.now() + datetime.timedelta(days=2)
-        await bot.restrict_chat_member(message.chat.id, message.from_user.id, until_date=until)
-        await message.answer(f"🚫 {message.from_user.first_name} 2 kunga ban qilindi (Sabab: So'kinish)")
+        if has_bad_word:
+            # 2 kunga ban
+            until = datetime.datetime.now() + datetime.timedelta(days=2)
+            await bot.restrict_chat_member(GROUP_ID, message.from_user.id, until_date=until)
+            await message.answer(f"🚫 {message.from_user.full_name} 2 kunga ban qilindi (Sabab: So'kinish).")
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)
