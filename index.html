@@ -3,71 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MadiWay Premium</title>
+    <title>MadiWay App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --orange: #FF6B00; --dark: #121212; --gray: #F8F9FA; }
-        body { background: var(--gray); font-family: -apple-system, Roboto, sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        :root { --orange: #FF6B00; --dark: #121212; --gray: #F5F7F9; }
+        body { background: var(--gray); font-family: -apple-system, sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
 
-        .page { display: none; animation: slideIn 0.4s ease; padding-bottom: 80px; }
+        .page { display: none; animation: fadeIn 0.4s ease; padding-bottom: 30px; }
         .page.active { display: block; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Header yangi fura bilan */
-        .header { background: white; padding: 35px 20px; border-radius: 0 0 35px 35px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .header h1 { font-size: 26px; margin: 0; color: var(--dark); font-weight: 800; width: 60%; }
-        .truck-icon { position: absolute; right: -10px; bottom: 10px; width: 210px; z-index: 1; filter: drop-shadow(0 15px 20px rgba(0,0,0,0.1)); }
+        /* Header dizayni */
+        .header { background: white; padding: 30px 20px; border-radius: 0 0 35px 35px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .header h1 { font-size: 24px; margin: 0; font-weight: 800; width: 60%; }
+        /* SIZ AYTGAN DAF FURA RASMI */
+        .truck-header { position: absolute; right: -10px; bottom: 10px; width: 220px; z-index: 1; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15)); }
 
-        /* Inputlar */
-        .card { background: white; margin: 15px; padding: 20px; border-radius: 20px; }
-        .p-input { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid #EEE; margin-bottom: 15px; font-size: 16px; outline: none; }
+        .input-group { padding: 20px; }
+        .p-input { width: 100%; padding: 18px; border-radius: 18px; border: 2px solid #EEE; background: white; font-size: 16px; outline: none; margin-bottom: 15px; }
         .p-input:focus { border-color: var(--orange); }
 
-        /* Face ID */
-        .face-scanner { width: 240px; height: 240px; margin: 25px auto; border-radius: 50%; border: 4px solid var(--orange); position: relative; overflow: hidden; background: #000; }
-        #video { width: 100%; height: 100%; object-fit: cover; }
-        .laser { position: absolute; width: 100%; height: 3px; background: var(--orange); top: 0; animation: move 2s infinite linear; box-shadow: 0 0 15px var(--orange); }
-        @keyframes move { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
-
-        .btn-main { width: 100%; padding: 20px; border: none; border-radius: 20px; background: var(--orange); color: white; font-weight: 800; font-size: 18px; box-shadow: 0 10px 20px rgba(255,107,0,0.2); }
+        .btn-main { width: 90%; margin: 0 5%; padding: 20px; border: none; border-radius: 20px; background: var(--orange); color: white; font-weight: 800; font-size: 18px; }
 
         /* Topic Grid */
         .topic-grid { padding: 20px; display: grid; gap: 12px; }
-        .topic-item { background: white; padding: 22px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
-        .topic-item b { font-size: 18px; }
+        .topic-card { background: white; padding: 20px; border-radius: 22px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .flag { font-size: 28px; margin-right: 15px; }
     </style>
 </head>
 <body>
 
-    <!-- 1. LOGIN -->
-    <div id="pg-login" class="page active" style="padding: 50px 25px;">
-        <h1 style="font-size: 32px;">Kirish</h1>
-        <p style="color: #666; margin-bottom: 30px;">Profil ma'lumotlarini kiriting</p>
-        <input type="text" id="u-name" class="p-input" placeholder="Ism va Familiya">
+    <!-- Kirish -->
+    <div id="p-login" class="page active" style="padding: 50px 20px;">
+        <h1 style="font-size: 30px;">Xush kelibsiz</h1>
+        <p style="color: #666; margin-bottom: 30px;">Tizimga kirish uchun Face ID skaneridan o'ting.</p>
+        <input type="text" id="u-name" class="p-input" placeholder="Ism Familiya">
         <input type="tel" id="u-phone" class="p-input" placeholder="+998 (__) ___-__-__">
-        <button class="btn-main" onclick="startCamera()">Face ID Tasdiqlash 📸</button>
+        <button class="btn-main" onclick="openCam()">Davom etish 📸</button>
     </div>
 
-    <!-- 2. FACE ID -->
-    <div id="pg-face" class="page" style="text-align: center; padding: 40px 25px;">
+    <!-- Face ID -->
+    <div id="p-face" class="page" style="text-align: center; padding: 40px 20px;">
         <h2>Face ID Skaner</h2>
-        <div class="face-scanner"><video id="video" autoplay playsinline></video><div class="laser"></div></div>
-        <button class="btn-main" onclick="captureAuth()">Skanerlash</button>
+        <video id="video" style="width: 250px; height: 250px; border-radius: 50%; border: 4px solid var(--orange); object-fit: cover;" autoplay playsinline></video>
+        <button class="btn-main" style="margin-top: 30px;" onclick="completeFace()">Skanerlash</button>
     </div>
 
-    <!-- 3. MAIN -->
-    <div id="pg-main" class="page">
+    <!-- Asosiy (Topiclar) -->
+    <div id="p-main" class="page">
         <div class="header">
-            <h1 id="welcome">Yo'nalishni tanlang</h1>
-            <!-- YANGI FURA RASMI -->
-            <img src="https://madiway.github.io/madiway-bot/truck_transparent.png" class="truck-icon">
+            <h1>Yuk yo'nalishini tanlang</h1>
+            <!-- SIZ AYTGAN DAF FURA RASMI -->
+            <img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-header">
         </div>
         <div class="topic-grid">
-            <div class="topic-item" onclick="openForm('Europe')"><b>Europe 🇪🇺</b> <span>🚀</span></div>
-            <div class="topic-item" onclick="goForm('Rossiya')"><b>Rossiya 🇷🇺</b> <span>🚀</span></div>
-            <div class="topic-item" onclick="goForm('Qirg\'iziston')"><b>Qirg'iziston 🇰🇬</b> <span>🚀</span></div>
-            <div class="topic-item" onclick="goForm('Kazakistan')"><b>Kazakistan 🇰🇿</b> <span>🚀</span></div>
-            <!-- Qolgan topiclarni ham shunday qo'shish mumkin -->
+            <div class="topic-card" onclick="goForm('Europe')"><span><span class="flag">🇪🇺</span><b>Europe</b></span> <span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Rossiya')"><span><span class="flag">🇷🇺</span><b>Rossiya</b></span> <span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Qirg\'iziston')"><span><span class="flag">🇰🇬</span><b>Qirg'iziston</b></span> <span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Kazakistan')"><span><span class="flag">🇰🇿</span><b>Kazakistan</b></span> <span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Eron')"><span><span class="flag">🇮🇷</span><b>Eron</b></span> <span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Tojikston')"><span><span class="flag">🇹🇯</span><b>Tojikston</b></span> <span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Germaniya')"><span><span class="flag">🇩🇪</span><b>Germaniya</b></span> <span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Belarusiya')"><span><span class="flag">🇧🇾</span><b>Belarusiya</b></span> <span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Gruziya')"><span><span class="flag">🇬🇪</span><b>Gruziya</b></span> <span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Ukraina')"><span><span class="flag">🇺🇦</span><b>Ukraina</b></span> <span>🚀</span></div>
         </div>
     </div>
 
@@ -76,7 +75,7 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        let user = JSON.parse(localStorage.getItem('madiway_user'));
+        let currentTopic = "";
 
         // Telefon maskasi
         document.getElementById('u-phone').addEventListener('input', (e) => {
@@ -84,39 +83,24 @@
             e.target.value = !x[2] ? '+998 (' : '+998 (' + x[2] + (x[3] ? ') ' + x[3] : '') + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
         });
 
-        window.onload = () => { if(user) { document.getElementById('welcome').innerText = "Salom, " + user.name; showPage('pg-main'); } };
+        async function openCam() {
+            const s = await navigator.mediaDevices.getUserMedia({ video: true });
+            document.getElementById('video').srcObject = s;
+            showPage('p-face');
+        }
+
+        function completeFace() {
+            // Rasmga olish va botga yuborish logikasi shu yerda
+            showPage('p-main');
+        }
 
         function showPage(id) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
 
-        async function startCamera() {
-            try {
-                const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                document.getElementById('video').srcObject = s;
-                showPage('pg-face');
-            } catch { alert("Kameraga ruxsat zarur!"); }
-        }
-
-        function captureAuth() {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const img = canvas.toDataURL('image/jpeg', 0.5);
-
-            const name = document.getElementById('u-name').value;
-            const phone = document.getElementById('u-phone').value;
-            localStorage.setItem('madiway_user', JSON.stringify({name, phone}));
-            
-            tg.sendData(JSON.stringify({ action: "login_report", auth: {name, phone, img} }));
-            showPage('pg-main');
-        }
-
-        function openForm(topic) {
-            // Yuk joylash formasi kodini shu yerga qo'shishingiz mumkin
-            alert(topic + " uchun yuk joylash");
+        function goForm(topic) {
+            alert(topic + " uchun yuk joylash tanlandi!");
         }
     </script>
 </body>
