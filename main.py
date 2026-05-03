@@ -1,109 +1,116 @@
 import logging
 import json
-import base64
-from datetime import datetime, timedelta
-from io import BytesIO
+import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
-from aiogram.types import WebAppInfo, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
-# --- KONFIGURATSIYA ---
+# Bot sozlamalari
 TOKEN = "8791239714:AAH17eobRUq3xCUMYJipwcSrmYPJPfZr3Rs"
-ADMINS = [6977836294, 8112179116] 
+ADMINS = [6977836294, 8112179116]
 KANAL_ID = "@MADIWAYy"
-WEB_APP_URL = "https://madiway.github.io/madiway-bot/" 
-BANNER_URL = "https://madiway.github.io/madiway-bot/madiway_banner.png"
+GROUP_ID = -1002345678901  # MADIWAY_Gr guruhining haqiqiy ID sini qo'ying
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
-user_limits = {} 
+# Face ID rasmlari uchun vaqtinchalik baza
+face_database = {}
 
-# 1. START BUYRUG'I
+# SIZ BERGAN TOPICLAR VA ULARNING ID-LARI
+TOPICS = {
+    "Europe": 2,
+    "Rossiya": 4,
+    "Qirg'iziston": 6,
+    "Kazakistan": 8,
+    "Eron": 10,
+    "Tojikston": 12,
+    "Germaniya": 14,
+    "Belarusiya": 16,
+    "Gruziya": 18,
+    "Ukraina": 20
+}
+
 @dp.message_handler(commands=['start'])
 async def cmd_start(message: types.Message):
-    user_id = message.from_user.id
-    is_admin = user_id in ADMINS
-    status_icon = "🛡 **Siz tizimda: Admin ✅**" if is_admin else "👤 **Siz tizimda: Foydalanuvchi**"
-    
-    msg_text = (
-        "🏔 **MadiWay | Global Logistics & Dispatch** 🚀\n\n"
-        "Xalqaro yuk tashish va professional dispetcherlik xizmatlari tarmog'iga xush kelibsiz!\n"
-        "Biz to'rtta davlatni yagona xavfsiz marshrut bilan bog'laymiz:\n\n"
-        "🌍 **Bizning yo'nalishlar:**\n"
-        "📍 O'zbekiston 🇺🇿\n"
-        "📍 Qozog'iston 🇰🇿\n"
-        "📍 Rossiya 🇷🇺\n"
-        "📍 Ozarbayjon 🇦🇿\n\n"
-        f"{status_icon}\n\n"
-        "✅ Ishonchlilik: Yukingiz manzili va vaqti bizning nazoratimizda.\n"
-        "✅ Tezkorlik: Eng qulay va xavfsiz yo'llarni taqdim etamiz.\n"
-        "✅ Professional Dispetcherlik: 24/7 aloqa va harakat nazorati.\n\n"
-        "🚛 **MadiWay — Sizning yukingiz, bizning mas'uliyatimiz!**\n\n"
-        "📥 Bog'lanish uchun: @Madiways\n"
-        "🔗 Kanal: T.me/MADIWAYy"
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(
+        InlineKeyboardButton("🏔 MadiWay Ilovasi", web_app=WebAppInfo(url="https://madiway.github.io/madiway-bot/")),
     )
     
-    kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(KeyboardButton("🏔 MadiWay Ilovasi", web_app=WebAppInfo(url=WEB_APP_URL)))
-    if is_admin:
-        kb.add(KeyboardButton("📩 Chat Monitoring"))
+    # Faqat adminlar uchun Face ID bazasi tugmasi
+    if message.from_user.id in ADMINS:
+        kb.add(InlineKeyboardButton("📸 Face ID Skanerlar Bazasi", callback_data="view_face_db"))
 
-    try:
-        await message.answer_photo(photo=BANNER_URL, caption=msg_text, parse_mode="Markdown", reply_markup=kb)
-    except:
-        await message.answer(msg_text, parse_mode="Markdown", reply_markup=kb)
+    caption = (
+        "🚛 **MADIWAY | Professional Logistics**\n\n"
+        "Xalqaro yuk tashish tizimi va yuklarni boshqarish botiga xush kelibsiz!\n\n"
+        "Pastdagi tugma orqali ilovaga kiring va yukingizni joylang."
+    )
+    
+    await message.answer_photo(
+        photo="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png",
+        caption=caption,
+        reply_markup=kb,
+        parse_mode="Markdown"
+    )
 
-# 2. KANALGA YUK YUBORISH (4 TA TUGMA BILAN)
 @dp.message_handler(content_types=types.ContentType.WEB_APP_DATA)
-async def web_app_data_handler(message: types.Message):
+async def handle_webapp_data(message: types.Message):
     data = json.loads(message.web_app_data.data)
     user = message.from_user
-    now = datetime.now()
 
-    if data.get("action") == "post":
-        # 55 kunlik cheklov (Admin bo'lmasa)
-        if user.id not in ADMINS:
-            if user.id in user_limits:
-                if now < user_limits[user.id] + timedelta(days=55):
-                    return await message.answer(f"⚠️ Limit: { (user_limits[user.id] + timedelta(days=55) - now).days } kundan keyin yuk qo'sha olasiz.")
-            user_limits[user.id] = now
+    # Face ID hisoboti (Login qilinganda)
+    if data.get("action") == "login_report":
+        face_database[user.id] = {
+            "name": data['auth']['name'],
+            "phone": data['auth']['phone'],
+            "photo": data['auth']['img']
+        }
+        for admin in ADMINS:
+            await bot.send_message(admin, f"👤 **Yangi Face ID Tasdiqlandi:**\nIsm: {data['auth']['name']}\nTel: {data['auth']['phone']}")
 
+    # Yuk yuborish (Post)
+    elif data.get("action") == "post":
+        country = data.get("country")
+        topic_id = TOPICS.get(country)
+        count = int(data.get("repeat", 1)) 
+        
         post_text = (
-            f"🚛 **#YANGI_YUK | MadiWay**\n\n"
-            f"📦 **Tavsif:** {data['content']}\n"
-            f"⏰ **Yuklash vaqti:** {data['time']}\n"
-            f"🔄 **Soni:** {data['repeat']} marta\n"
+            f"🚛 **#YANGI_YUK | {country}**\n\n"
+            f"📦 **Yuk:** {data['content']}\n"
+            f"⏰ **Vaqt:** {data['time']}\n"
             f"👤 **E'lon beruvchi:** {user.full_name}\n"
-            f"📅 **Sana:** {now.strftime('%d/%m/%Y')}\n\n"
-            f"🏁 @MADIWAYy"
+            f"📞 **Aloqa:** Ilova orqali\n\n"
+            f"🏁 @MADIWAYy | @MADIWAYy_bot"
         )
         
-        # SIZ AYTGAN 4 TA TUGMA
         kb = InlineKeyboardMarkup(row_width=2)
         kb.add(
-            InlineKeyboardButton("📞 Raqamni ko'rish", callback_data=f"tel_{user.id}"),
-            InlineKeyboardButton("🚀 Yuk Joylash", url="https://t.me/madiway_bot?start=post"),
+            InlineKeyboardButton("📞 Raqamni ko'rish", callback_data=f"show_tel_{user.id}"),
+            InlineKeyboardButton("🚀 Yuk Joylash", url="https://t.me/MADIWAYy_bot"),
             InlineKeyboardButton("🏔 MadiWay Kanal", url="https://t.me/MADIWAYy"),
             InlineKeyboardButton("💬 Lichkaga yozish", url=f"tg://user?id={user.id}")
         )
-        
-        await bot.send_message(KANAL_ID, post_text, reply_markup=kb, parse_mode="Markdown")
-        await message.answer("✅ Yukingiz kanalga barcha tugmalar bilan muvaffaqiyatli yuborildi!")
 
-# 3. LICHKA MONITORING (Chatni kuzatish)
-@dp.message_handler(lambda m: m.chat.type == 'private' and not m.text.startswith('/'))
-async def track_chat(message: types.Message):
-    if message.from_user.id in ADMINS: return
-    for admin in ADMINS:
-        try:
-            await bot.send_message(admin, f"👁 **Chat Monitor:**\n👤 {message.from_user.full_name}\n🆔 `{message.from_user.id}`\n💬 {message.text}")
-        except: pass
+        # 1 dan 6 martagacha yuborish
+        for i in range(min(count, 6)):
+            await bot.send_message(KANAL_ID, post_text, reply_markup=kb, parse_mode="Markdown")
+            if topic_id:
+                try:
+                    await bot.send_message(GROUP_ID, post_text, reply_markup=kb, message_thread_id=topic_id, parse_mode="Markdown")
+                except Exception as e:
+                    logging.error(f"Topicga yuborishda xato: {e}")
+            await asyncio.sleep(1)
 
-# Tugma bosilganda alert chiqarish (Raqam uchun)
-@dp.callback_query_handler(lambda c: c.data.startswith('tel_'))
-async def tel_callback(callback: types.CallbackQuery):
-    await callback.answer("📞 Aloqa uchun 'Lichkaga yozish' tugmasi orqali profilga o'ting!", show_alert=True)
+@dp.callback_query_handler(lambda c: c.data == "view_face_db")
+async def view_faces(callback: types.CallbackQuery):
+    if not face_database:
+        await callback.answer("Hozircha Face ID bazasi bo'sh!", show_alert=True)
+        return
+    await callback.message.answer("📸 **Face ID bazasidagi foydalanuvchilar:**")
+    for uid, info in face_database.items():
+        await callback.message.answer(f"👤 {info['name']}\n📞 {info['phone']}\n🆔 {uid}")
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
