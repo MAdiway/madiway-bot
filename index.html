@@ -3,68 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MadiWay App</title>
+    <title>MadiWay Premium Logistics</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --blue: #003366; --apple: #007AFF; --bg: #F2F2F7; --white: #FFFFFF; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
-        body { background: var(--bg); color: #1C1C1E; height: 100vh; overflow: hidden; }
-        #loader { position: fixed; width: 100%; height: 100%; background: var(--white); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .logo-load { font-size: 28px; font-weight: 800; color: var(--blue); letter-spacing: -1px; }
-        .page { display: none; padding: 15px; height: 100vh; overflow-y: auto; animation: fadeIn 0.3s ease; }
-        .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        .input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #D1D1D6; background: #FAFAFA; margin-bottom: 12px; font-size: 16px; outline: none; }
-        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--blue); color: #FFF; font-weight: 600; font-size: 16px; cursor: pointer; }
-        .cam-box { width: 240px; height: 240px; border-radius: 50%; border: 4px solid var(--apple); margin: 20px auto; overflow: hidden; position: relative; background: #000; }
+        :root { --orange: #FF6B00; --dark: #121212; --light-gray: #F8F9FA; --premium-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--light-gray); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; margin: 0; padding: 0; color: var(--dark); overflow-x: hidden; }
+
+        /* Sahifa o'tishlari */
+        .page { display: none; animation: fadeIn 0.4s ease; padding-bottom: 80px; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Header dizayni */
+        .header { background: white; padding: 35px 20px; border-radius: 0 0 35px 35px; box-shadow: var(--premium-shadow); position: relative; }
+        .truck-img { position: absolute; right: -15px; bottom: 10px; width: 230px; filter: drop-shadow(10px 10px 20px rgba(0,0,0,0.15)); z-index: 1; }
+        .header-content { position: relative; z-index: 2; width: 60%; }
+        .header-content h1 { font-size: 28px; margin: 0; font-weight: 800; }
+
+        /* Inputlar */
+        .p-input { width: 100%; padding: 18px; border-radius: 18px; border: 2px solid #EEE; background: white; font-size: 16px; outline: none; margin-bottom: 15px; }
+        .p-input:focus { border-color: var(--orange); }
+
+        /* Face ID */
+        .face-container { width: 250px; height: 250px; margin: 30px auto; border-radius: 50%; border: 4px solid var(--orange); position: relative; overflow: hidden; }
         #video { width: 100%; height: 100%; object-fit: cover; }
-        .scan-line { position: absolute; width: 100%; height: 2px; background: var(--apple); top: 0; animation: scan 2s infinite; }
-        @keyframes scan { from { top: 0; } to { top: 100%; } }
-        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab { flex: 1; text-align: center; padding: 12px; background: #E5E5EA; border-radius: 12px; font-size: 14px; font-weight: 600; }
-        .tab.active-tab { background: var(--blue); color: #FFF; }
-        .yuk-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #EEE; }
+        .scan-line { position: absolute; width: 100%; height: 4px; background: var(--orange); top: 0; animation: scanning 2s infinite linear; box-shadow: 0 0 15px var(--orange); }
+        @keyframes scanning { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+
+        /* Topic Cards */
+        .topic-grid { padding: 20px; display: grid; gap: 12px; }
+        .topic-card { background: white; padding: 20px; border-radius: 22px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--premium-shadow); }
+        .flag-ani { font-size: 30px; margin-right: 15px; animation: wave 3s infinite ease-in-out; display: inline-block; }
+        @keyframes wave { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(8deg); } 75% { transform: rotate(-8deg); } }
+
+        .p-btn { width: 100%; padding: 20px; border-radius: 20px; border: none; background: var(--orange); color: white; font-size: 18px; font-weight: 700; }
     </style>
 </head>
 <body>
-    <div id="loader"><div class="logo-load">MadiWay</div></div>
 
-    <div id="p-login" class="page">
-        <div class="card">
-            <h2 style="margin-bottom:20px; color: var(--blue);">Kirish</h2>
-            <input type="text" id="name" class="input" placeholder="Ism Familiya">
-            <input type="tel" id="tel" class="input" value="+998 (" maxlength="19">
-            <button class="btn" onclick="startScan()">Face ID Tasdiqlash</button>
-        </div>
+    <div id="p-login" class="page active" style="padding: 50px 25px;">
+        <h1>Kirish</h1>
+        <input type="text" id="user-fullname" class="p-input" placeholder="Ism va Familiya">
+        <input type="tel" id="user-phone" class="p-input" placeholder="+998 (__) ___-__-__">
+        <button class="p-btn" onclick="openCamera()">Tasdiqlash & Face ID 📸</button>
     </div>
 
-    <div id="p-scan" class="page">
-        <div class="cam-box"><video id="video" autoplay playsinline></video><div class="scan-line"></div></div>
-        <button class="btn" style="background:#34C759;" onclick="capture()">Skanerlashni yakunlash</button>
+    <div id="p-face" class="page" style="padding: 40px 25px; text-align: center;">
+        <h2>Face ID Skaner</h2>
+        <div class="face-container"><video id="video" autoplay playsinline></video><div class="scan-line"></div></div>
+        <button class="p-btn" onclick="completeAuth()">Skanerlash</button>
     </div>
 
     <div id="p-main" class="page">
-        <div class="tabs">
-            <div id="t1" class="tab active-tab" onclick="switchTab(1)">Yuk Joylash</div>
-            <div id="t2" class="tab" onclick="switchTab(2)">Yuklarim</div>
+        <div class="header">
+            <div class="header-content"><small id="welcome-msg">Salom!</small><h1>Yo'nalishni tanlang</h1></div>
+            <img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-img">
         </div>
-        <div id="tab-1">
-            <div class="card">
-                <textarea id="yuk" class="input" rows="5" placeholder="Yuk tavsifi..."></textarea>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="time" class="input" placeholder="Vaqt (14:30)" maxlength="5">
-                    <input type="number" id="count" class="input" value="1" min="1" max="6">
-                </div>
-                <label style="display:flex; align-items:center; gap:8px; margin-bottom:15px; font-size:14px;">
-                    <input type="checkbox" id="now" onchange="toggleTime()"> Soatsiz (Hozir)
-                </label>
-                <button class="btn" onclick="sendPost()">Kanalga Yuborish 🚀</button>
-            </div>
+        <div class="topic-grid" id="topics">
+            <!-- Topiclar -->
+            <div class="topic-card" onclick="goForm('Europe', '🇪🇺')"><span class="flag-ani">🇪🇺</span><b>Europe</b><span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Rossiya', '🇷🇺')"><span class="flag-ani">🇷🇺</span><b>Rossiya</b><span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Qirg\'iziston', '🇰🇬')"><span class="flag-ani">🇰🇬</span><b>Qirg'iziston</b><span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Kazakistan', '🇰🇿')"><span class="flag-ani">🇰🇿</span><b>Kazakistan</b><span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Eron', '🇮🇷')"><span class="flag-ani">🇮🇷</span><b>Eron</b><span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Tojikston', '🇹🇯')"><span class="flag-ani">🇹🇯</span><b>Tojikston</b><span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Germaniya', '🇩🇪')"><span class="flag-ani">🇩🇪</span><b>Germaniya</b><span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Belarusiya', '🇧🇾')"><span class="flag-ani">🇧🇾</span><b>Belarusiya</b><span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Gruziya', '🇬🇪')"><span class="flag-ani">🇬🇪</span><b>Gruziya</b><span>🚀</span></div>
+            <div class="topic-card" onclick="goForm('Ukraina', '🇺🇦')"><span class="flag-ani">🇺🇦</span><b>Ukraina</b><span>🚀</span></div>
         </div>
-        <div id="tab-2" style="display:none;">
-            <div class="card" id="yuk-list"></div>
+    </div>
+
+    <div id="p-form" class="page" style="padding: 25px;">
+        <h2 id="form-topic-name">Yo'nalish</h2>
+        <textarea id="y-desc" class="p-input" rows="4" placeholder="Yuk tavsifi..."></textarea>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="y-time" class="p-input" style="flex:2;" placeholder="Vaqt (14:30)">
+            <input type="number" id="y-repeat" class="p-input" style="flex:1;" value="1" min="1" max="6">
         </div>
+        <label style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+            <input type="checkbox" id="y-now" onchange="toggleTime()"><b>Hozir yuborish</b>
+        </label>
+        <button class="p-btn" onclick="sendToBot()">Kanalga chiqarish 🚀</button>
     </div>
 
     <canvas id="canvas" style="display:none;"></canvas>
@@ -72,87 +93,54 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        let myHistory = JSON.parse(localStorage.getItem('madiway_history') || '[]');
+        let user = JSON.parse(localStorage.getItem('madiway_user'));
+        let currentTopic = "";
 
-        window.onload = () => {
-            document.getElementById('loader').style.display = 'none';
-            if (localStorage.getItem('madiway_user')) {
-                document.getElementById('p-main').classList.add('active');
-            } else {
-                document.getElementById('p-login').classList.add('active');
-            }
-        };
-
-        const telInput = document.getElementById('tel');
-        telInput.oninput = (e) => {
+        // Telefon maskasi
+        document.getElementById('user-phone').addEventListener('input', (e) => {
             let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,2})(\d{0,3})(\d{0,2})(\d{0,2})/);
             e.target.value = !x[2] ? '+998 (' : '+998 (' + x[2] + (x[3] ? ') ' + x[3] : '') + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
-        };
+        });
 
-        async function startScan() {
-            if(!document.getElementById('name').value || telInput.value.length < 18) return alert("Ma'lumotlarni to'ldiring!");
-            document.getElementById('p-login').classList.remove('active');
-            document.getElementById('p-scan').classList.add('active');
-            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-            document.getElementById('video').srcObject = s;
+        window.onload = () => { if(user) { document.getElementById('welcome-msg').innerText = "Salom, " + user.name; showPage('p-main'); } };
+
+        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+        async function openCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                document.getElementById('video').srcObject = stream;
+                showPage('p-face');
+            } catch { alert("Kameraga ruxsat bering!"); }
         }
 
-        function capture() {
-            const v = document.getElementById('video');
-            const c = document.getElementById('canvas');
-            c.width = v.videoWidth; c.height = v.videoHeight;
-            c.getContext('2d').drawImage(v, 0, 0);
-            const photo = c.toDataURL('image/jpeg', 0.5);
-            const user = { name: document.getElementById('name').value, phone: telInput.value };
-            
-            // MA'LUMOTNI BOTGA YUBORISH
-            tg.sendData(JSON.stringify({ action: "login_report", auth: { ...user, img: photo } }));
-            localStorage.setItem('madiway_user', JSON.stringify(user));
-
-            v.srcObject.getTracks().forEach(t => t.stop());
-            document.getElementById('p-scan').classList.remove('active');
-            document.getElementById('p-main').classList.add('active');
+        function completeAuth() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const photo = canvas.toDataURL('image/jpeg', 0.5);
+            const data = { name: document.getElementById('user-fullname').value, phone: document.getElementById('user-phone').value };
+            localStorage.setItem('madiway_user', JSON.stringify(data));
+            tg.sendData(JSON.stringify({ action: "login_report", auth: {...data, img: photo} }));
+            showPage('p-main');
         }
 
-        function toggleTime() { document.getElementById('time').disabled = document.getElementById('now').checked; }
+        function goForm(topic, flag) { currentTopic = topic; document.getElementById('form-topic-name').innerText = flag + " " + topic; showPage('p-form'); }
 
-        function switchTab(n) {
-            document.getElementById('tab-1').style.display = n === 1 ? 'block' : 'none';
-            document.getElementById('tab-2').style.display = n === 2 ? 'block' : 'none';
-            document.getElementById('t1').className = n === 1 ? 'tab active-tab' : 'tab';
-            document.getElementById('t2').className = n === 2 ? 'tab active-tab' : 'tab';
-            if(n===2) renderHistory();
+        function toggleTime() { 
+            const t = document.getElementById('y-time'); 
+            t.disabled = document.getElementById('y-now').checked; 
+            t.style.opacity = t.disabled ? "0.5" : "1"; 
         }
 
-        function sendPost() {
-            const c = document.getElementById('yuk').value;
-            const t = document.getElementById('now').checked ? "Hozir" : document.getElementById('time').value;
-            const r = document.getElementById('count').value;
-            if(!c) return alert("Yukni yozing!");
-
-            myHistory.push({c, t, r, d: new Date().toLocaleTimeString()});
-            localStorage.setItem('madiway_history', JSON.stringify(myHistory));
-            
-            // DIQQAT: Bu yerda yuborilgan JSON 'main.py' dagi 'action: post' qismiga boradi.
-            // O'sha yerda biz 4 ta tugmani yasab kanalga chiqaramiz.
-            tg.sendData(JSON.stringify({ 
-                action: "post", 
-                content: c, 
-                time: t, 
-                repeat: r 
-            }));
-            
+        function sendToBot() {
+            const desc = document.getElementById('y-desc').value;
+            const time = document.getElementById('y-now').checked ? "Hozir" : document.getElementById('y-time').value;
+            const repeat = document.getElementById('y-repeat').value;
+            if(time !== "Hozir" && !/^\d{2}:\d{2}$/.test(time)) return alert("Vaqtni 14:30 formatida yozing!");
+            tg.sendData(JSON.stringify({ action: "post", country: currentTopic, content: desc, time: time, repeat: repeat }));
             tg.close();
-        }
-
-        function renderHistory() {
-            const list = document.getElementById('yuk-list');
-            list.innerHTML = myHistory.length ? myHistory.map((h, i) => `
-                <div class="yuk-item">
-                    <div><b>${h.c.substring(0,20)}...</b><br><small>${h.t} | ${h.r}x</small></div>
-                    <span style="color:red; font-weight:700;" onclick="myHistory.splice(${i},1);localStorage.setItem('madiway_history', JSON.stringify(myHistory));renderHistory()">DELETE</span>
-                </div>
-            `).join('') : "<p style='text-align:center; color:gray;'>Mavjud emas</p>";
         }
     </script>
 </body>
