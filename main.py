@@ -8,25 +8,25 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo, MenuB
 # Loglarni yoqish
 logging.basicConfig(level=logging.INFO)
 
-# --- YANGI TOKEN JOYLASHDI ---
+# --- KONFIGURATSIYA ---
 TOKEN = "8791239714:AAGW7AEy6Zh3Rtz164oJex_MWEsLx2ROBM4"
 GROUP_ID = -1003996104316 
 CHANNEL_USER = "@MADIWAYy" 
-WEB_APP_URL = "https://yusufxonpro.github.io/madiway/"
+WEB_APP_URL = "https://madiway.github.io/madiway-bot/" # GitHub linkinigiz
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
 @dp.message(Command("start"))
 async def start_handler(message: types.Message):
-    # Katta tugma (Reply Keyboard)
+    # Pastdagi ko'k 'Menu' tugmasi o'rniga ishlaydigan katta tugma
     kb = [
         [KeyboardButton(text="🚛 Yuk yuborish", web_app=WebAppInfo(url=WEB_APP_URL))]
     ]
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb, 
         resize_keyboard=True,
-        input_field_placeholder="Yuk yuborish tugmasini bosing"
+        input_field_placeholder="Yuk yuborish uchun pastdagi tugmani bosing"
     )
     
     await message.answer(
@@ -69,10 +69,10 @@ async def handle_webapp_data(message: types.Message):
 
     except Exception as e:
         logging.error(f"Xato: {e}")
-        await message.answer("❌ Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.")
+        await message.answer("❌ Xatolik yuz berdi. Qayta urinib ko'ring.")
 
 async def main():
-    # Eski Menyuni (ko'k tugmani) API orqali majburan o'chiradi
+    # Bot yonganda eski ko'k menyu tugmasini API orqali yo'qotadi
     await bot.set_chat_menu_button(chat_id=None, menu_button=MenuButtonDefault())
     
     await bot.delete_webhook(drop_pending_updates=True)
