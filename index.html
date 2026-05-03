@@ -13,23 +13,11 @@
         body { background: var(--gray); color: var(--dark); }
         .page { display: none; padding-bottom: 80px; }
         .active { display: block !important; }
-
-        /* Banner */
-        .banner { background: white; padding: 25px 20px; border-radius: 0 0 30px 30px; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.05); height: 160px; }
+        .banner { background: white; padding: 25px 20px; border-radius: 0 0 30px 30px; position: relative; height: 160px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
         .truck-img { position: absolute; right: -10px; bottom: 0; width: 180px; z-index: 1; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
-
-        /* List */
-        .card { background: white; margin: 10px 15px; padding: 18px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid #eee; }
-        .input { width: 100%; padding: 15px; border-radius: 15px; border: 1.5px solid #DDD; margin-bottom: 12px; font-size: 16px; background: #F9F9FB; outline: none; }
-        .btn-send { background: var(--orange); color: white; border: none; padding: 18px; border-radius: 18px; width: 100%; font-weight: 800; font-size: 16px; box-shadow: 0 5px 15px rgba(255,107,0,0.3); }
-
-        /* Scanner */
-        .scan-container { width: 200px; height: 200px; border-radius: 50%; border: 4px solid var(--orange); margin: 30px auto; overflow: hidden; position: relative; background: #000; }
-        #video { width: 100%; height: 100%; object-fit: cover; }
-        .scan-line { position: absolute; width: 100%; height: 3px; background: var(--orange); top: 0; animation: scan 2s infinite; }
-        @keyframes scan { from { top: 0; } to { top: 100%; } }
-
-        /* Modal */
+        .card { background: white; margin: 10px 15px; padding: 18px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; cursor: pointer; }
+        .input { width: 100%; padding: 15px; border-radius: 15px; border: 1.5px solid #DDD; margin-bottom: 12px; outline: none; font-size: 16px; background: #F9F9FB; }
+        .btn-send { background: var(--orange); color: white; border: none; padding: 18px; border-radius: 18px; width: 100%; font-weight: 800; font-size: 16px; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; backdrop-filter: blur(5px); }
         .modal-content { background: white; border-radius: 30px 30px 0 0; padding: 25px; position: absolute; bottom: 0; width: 100%; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -42,21 +30,14 @@
         <h1 style="color: var(--orange); font-size: 40px; font-weight: 900;">MadiWay</h1>
         <input type="text" id="u-name" class="input" placeholder="Ism Familiya">
         <input type="tel" id="u-phone" class="input" placeholder="+998 (__) ___-__-__">
-        <button class="btn-send" onclick="startAuth()">Face ID boshlash</button>
-    </div>
-</div>
-
-<div id="p-scan" class="page">
-    <div style="text-align: center; padding-top: 50px;">
-        <h2>Face ID Skaner...</h2>
-        <div class="scan-container"><video id="video" autoplay playsinline></video><div class="scan-line"></div></div>
+        <button class="btn-send" onclick="startAuth()">Profilni ochish</button>
     </div>
 </div>
 
 <div id="p-main" class="page">
     <div class="banner">
         <p>Salom, <span id="user-display" style="color: var(--orange); font-weight: 800;">...</span></p>
-        <h1>Qaysi yo'nalishga <br>yuk yuboramiz?</h1>
+        <h1>Yo'nalishni tanlang</h1>
         <img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-img">
     </div>
     <div id="list" style="padding-top: 10px;"></div>
@@ -89,26 +70,17 @@
     let selId = 0, selName = "";
 
     window.onload = () => {
-        const saved = localStorage.getItem('madi_v4');
+        const saved = localStorage.getItem('madi_session_final');
         if(saved) loginSuccess(JSON.parse(saved));
     };
 
-    async function startAuth() {
+    function startAuth() {
         const n = document.getElementById('u-name').value;
         const p = document.getElementById('u-phone').value;
         if(n.length < 3 || p.includes('_')) return alert("Ma'lumotlarni to'ldiring!");
-        
-        document.getElementById('p-login').classList.remove('active');
-        document.getElementById('p-scan').classList.add('active');
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        document.getElementById('video').srcObject = stream;
-
-        setTimeout(() => {
-            stream.getTracks().forEach(t => t.stop());
-            const user = { n, p };
-            localStorage.setItem('madi_v4', JSON.stringify(user));
-            loginSuccess(user);
-        }, 3000);
+        const user = { n, p };
+        localStorage.setItem('madi_session_final', JSON.stringify(user));
+        loginSuccess(user);
     }
 
     function loginSuccess(user) {
@@ -136,8 +108,8 @@
     function finalSend() {
         const desc = document.getElementById('yuk-desc').value;
         const time = document.getElementById('is-now').checked ? "Hozir" : document.getElementById('yuk-time').value;
-        const user = JSON.parse(localStorage.getItem('madi_v4'));
-        if(!desc) return alert("Tavsifni yozing!");
+        const user = JSON.parse(localStorage.getItem('madi_session_final'));
+        if(!desc) return alert("Yuk tavsifini yozing!");
 
         tg.sendData(JSON.stringify({
             t_id: selId, t_name: selName, desc: desc, time: time, u_name: user.n, u_phone: user.p
