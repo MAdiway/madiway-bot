@@ -3,40 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MadiWay Pro v14</title>
+    <title>MadiWay Logistics</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/inputmask@5.0.7/dist/inputmask.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --orange: #FF6B00; --bg: #F2F2F7; --blue: #0088cc; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
-        body { background: var(--bg); color: #1c1c1e; }
+        body { background: var(--bg); }
         .page { display: none; padding-bottom: 30px; animation: fadeIn 0.2s; }
         .active { display: block !important; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         .header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #DDD; }
-        .promo { padding: 20px; position: relative; background: white; overflow: hidden; height: 140px; }
-        .truck-img { position: absolute; right: -15px; bottom: 0; width: 160px; z-index: 1; }
-
+        .promo { padding: 20px; position: relative; background: white; height: 140px; }
+        .truck-img { position: absolute; right: -15px; bottom: 0; width: 160px; }
         .topic-list { padding: 15px; }
-        .card { background: white; padding: 16px; border-radius: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #E5E5EA; }
-
+        .card { background: white; padding: 16px; border-radius: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #E5E5EA; }
         .input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #C7C7CC; margin: 8px 0; outline: none; font-size: 16px; }
-        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; margin-top: 8px; transition: 0.2s; }
+        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; margin-top: 8px; }
         .btn-orange { background: var(--orange); color: white; }
         .btn-blue { background: var(--blue); color: white; }
-        
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px; backdrop-filter: blur(8px); }
-        .modal-content { background: white; border-radius: 24px; padding: 20px; margin-top: 15%; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        
-        .row { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-weight: 600; font-size: 14px; }
+        .modal-content { background: white; border-radius: 24px; padding: 20px; margin-top: 15%; }
+        .row { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-weight: 600; }
         #v-cont { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--orange); margin: 15px auto; overflow: hidden; display: none; }
     </style>
 </head>
 <body>
 
-<!-- Login -->
 <div id="p-login" class="page active">
     <div style="padding: 40px 20px; text-align: center; background: white; min-height: 100vh;">
         <h1 style="color:var(--orange); font-size: 36px;">MadiWay</h1>
@@ -47,32 +41,22 @@
     </div>
 </div>
 
-<!-- Main -->
 <div id="p-main" class="page">
-    <div class="header">
-        <b id="un">...</b>
-        <i class="fa-solid fa-truck" style="color:var(--orange)"></i>
-    </div>
-    <div class="promo">
-        <h2>Professional<br>Logistika</h2>
-        <img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-img">
-    </div>
+    <div class="header"><b id="un">...</b><i class="fa-solid fa-truck" style="color:var(--orange)"></i></div>
+    <div class="promo"><h2>Tezkor<br>Yuklar</h2><img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-img"></div>
     <div class="topic-list" id="list"></div>
 </div>
 
-<!-- Modal -->
 <div id="mod" class="modal">
     <div class="modal-content">
-        <h3 id="mt" style="margin-bottom:10px;">Yo'nalish</h3>
-        <textarea id="desc" class="input" rows="3" placeholder="Yuk tavsifi (masalan: 20 tonna olma)..."></textarea>
-        
+        <h3 id="mt">Yo'nalish</h3>
+        <textarea id="desc" class="input" rows="3" placeholder="Yuk haqida ma'lumot..."></textarea>
         <div class="row">
             <input type="checkbox" id="now" checked onchange="document.getElementById('time').disabled = this.checked">
-            <label for="now">Hozir (Tezkor yuk)</label>
+            <label for="now">Hozir (Tezkor)</label>
         </div>
         <input type="time" id="time" class="input" disabled>
-
-        <button class="btn btn-orange" onclick="send('group')">Guruhga (Topic) yuborish</button>
+        <button class="btn btn-orange" onclick="send('group')">Guruhga yuborish</button>
         <button class="btn btn-blue" onclick="send('channel')">Kanalga yuborish</button>
         <button onclick="document.getElementById('mod').style.display='none'" style="width:100%; margin-top:10px; border:none; background:none; color:#8e8e93;">Bekor qilish</button>
     </div>
@@ -93,14 +77,13 @@
     async function auth() {
         const n = document.getElementById('u-name').value;
         const p = document.getElementById('u-phone').value;
-        if(n.split(' ').length < 2 || !Inputmask.isValid(p, {"mask": "+998 (99) 999-99-99"})) return tg.showAlert("Ism va raqamni to'g'irlang!");
-        
+        if(n.split(' ').length < 2 || !Inputmask.isValid(p, {"mask": "+998 (99) 999-99-99"})) return tg.showAlert("Ma'lumotlarni to'ldiring!");
         document.getElementById('v-cont').style.display = 'block';
         const s = await navigator.mediaDevices.getUserMedia({video:true});
         document.getElementById('video').srcObject = s;
         setTimeout(() => {
             s.getTracks().forEach(t => t.stop());
-            localStorage.setItem('madi_v14', JSON.stringify({n, p}));
+            localStorage.setItem('madi_v15', JSON.stringify({n, p}));
             location.reload();
         }, 2000);
     }
@@ -108,8 +91,7 @@
     function render() {
         document.getElementById('list').innerHTML = topics.map(t => `
             <div class="card" onclick="openM(${t.id}, '${t.n}')">
-                <span><b>${t.n}</b></span>
-                <i class="fa-solid fa-chevron-right" style="color:#C7C7CC"></i>
+                <span><b>${t.n}</b></span><i class="fa-solid fa-chevron-right" style="color:#CCC"></i>
             </div>
         `).join('');
     }
@@ -120,10 +102,8 @@
         const d = document.getElementById('desc').value;
         const isNow = document.getElementById('now').checked;
         const t = isNow ? "Hozir" : document.getElementById('time').value;
-
         if(!d || (!isNow && !t)) return tg.showAlert("Ma'lumotni to'ldiring!");
-        
-        const user = JSON.parse(localStorage.getItem('madi_v14'));
+        const user = JSON.parse(localStorage.getItem('madi_v15'));
         
         tg.sendData(JSON.stringify({
             target: target,
@@ -134,13 +114,11 @@
             u_name: user.n,
             u_phone: user.p
         }));
-        
-        // Ilovani yopish (Botga ma'lumot ketgandan keyin)
         setTimeout(() => tg.close(), 500);
     }
 
     window.onload = () => {
-        const s = localStorage.getItem('madi_v14');
+        const s = localStorage.getItem('madi_v15');
         if(s) {
             document.getElementById('p-login').classList.remove('active');
             document.getElementById('p-main').classList.add('active');
