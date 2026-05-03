@@ -3,9 +3,9 @@ import json
 import logging
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo, MenuButtonDefault
 
-# Loglarni yoqish (xatolarni ko'rib turish uchun)
+# Loglarni yoqish
 logging.basicConfig(level=logging.INFO)
 
 # --- SOZLAMALAR ---
@@ -17,18 +17,15 @@ WEB_APP_URL = "https://yusufxonpro.github.io/madiway/"
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# /start buyrug'i berilganda
 @dp.message(Command("start"))
 async def start_handler(message: types.Message):
-    # Katta tugma (Reply Keyboard) yaratish
-    # Bu usulda ma'lumot botga 100% o'tadi
+    # Katta tugma (Reply Keyboard) - Ma'lumot uzatish uchun yagona yo'l
     kb = [
         [KeyboardButton(text="🚛 Yuk yuborish", web_app=WebAppInfo(url=WEB_APP_URL))]
     ]
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb, 
-        resize_keyboard=True, 
-        one_time_keyboard=False,
+        resize_keyboard=True,
         input_field_placeholder="Yuk yuborish uchun pastdagi tugmani bosing"
     )
     
@@ -39,11 +36,9 @@ async def start_handler(message: types.Message):
         parse_mode="Markdown"
     )
 
-# Web App'dan ma'lumot kelganini ushlash
 @dp.message(F.web_app_data)
 async def handle_webapp_data(message: types.Message):
     try:
-        # JSON formatidagi ma'lumotni lug'atga aylantiramiz
         res = json.loads(message.web_app_data.data)
         
         report = (
@@ -56,10 +51,10 @@ async def handle_webapp_data(message: types.Message):
             f"🤖 #MadiWay_System"
         )
 
-        # 1. Kanalga yuborish
+        # Kanalga yuborish
         await bot.send_message(chat_id=CHANNEL_USER, text=report, parse_mode="Markdown")
         
-        # 2. Guruhning tegishli yo'nalishiga (topic) yuborish
+        # Guruhga yuborish
         try:
             await bot.send_message(
                 chat_id=GROUP_ID, 
@@ -67,30 +62,21 @@ async def handle_webapp_data(message: types.Message):
                 text=report, 
                 parse_mode="Markdown"
             )
-        except Exception as topic_err:
-            # Agar topic_id topilmasa, shunchaki guruhning o'ziga yuboradi
+        except:
             await bot.send_message(chat_id=GROUP_ID, text=report, parse_mode="Markdown")
 
-        await message.answer("✅ Rahmat! Ma'lumotlaringiz qabul qilindi va e'lon qilindi.")
+        await message.answer("✅ Rahmat! Yukingiz kanal va guruhga e'lon qilindi.")
 
     except Exception as e:
         logging.error(f"Xato: {e}")
         await message.answer("❌ Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.")
 
-# Botni ishga tushirish funksiyasi
 async def main():
-    # Kichkina ko'k Menu tugmasini o'chirish (default holatga qaytarish)
-    # Bu rasmda ko'ringan muammoni hal qiladi
-    await bot.set_chat_menu_button(menu_button=types.MenuButtonDefault())
+    # MUHIM: Xalaqit berayotgan ko'k Menu tugmasini butunlay o'chirish
+    await bot.set_chat_menu_button(chat_id=None, menu_button=MenuButtonDefault())
     
-    # Eskidan qolib ketgan so'rovlarni tozalash
     await bot.delete_webhook(drop_pending_updates=True)
-    
-    # Botni ishga tushirish
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
-        logging.info("Bot to'xtatildi")
+    asyncio.run(main())
