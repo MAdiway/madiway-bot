@@ -6,12 +6,11 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
 # --- KONFIGURATSIYA ---
-# Tokenni BotFather'dan olingan eng yangisi bilan tekshiring
 TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c"
 GROUP_ID = -1003996104316
 CHANNEL_ID = "@MADIWAYy"
 BANNER_URL = "https://raw.githubusercontent.com/madiway/madiway-bot/main/madiway_banner.png"
-WEB_APP_URL = "https://madiway.github.io/madiway-bot/" # GitHub Pages manzilingiz
+WEB_APP_URL = "https://madiway.github.io/madiway-bot/"
 
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
@@ -19,15 +18,15 @@ dp = Dispatcher(bot)
 
 BAD_WORDS = ["jalab", "qo'toq", "am", "qotoq", "iflos", "yaramas", "dalbayob", "axmoq", "gandon", "pider"]
 
-# --- START BUYRUG'I ---
 @dp.message_handler(commands=['start'])
 async def start_handler(message: types.Message):
     kb = InlineKeyboardMarkup().add(
         InlineKeyboardButton(text="🚛 MadiWay Ilovasi", web_app=WebAppInfo(url=WEB_APP_URL))
     )
     
+    # Markdown o'rniga oddiy matn, xato bermasligi uchun
     caption = (
-        "🏔 **MadiWay | Global Logistics** 🚀\n\n"
+        "🏔 <b>MadiWay | Global Logistics</b> 🚀\n\n"
         "Xalqaro yuk tashish tizimiga xush kelibsiz!\n\n"
         "Pastdagi tugmani bosing va Face ID orqali tizimga kiring.\n\n"
         "📢 Kanal: T.me/MADIWAYy\n"
@@ -35,50 +34,52 @@ async def start_handler(message: types.Message):
     )
     
     try:
-        await bot.send_photo(message.chat.id, photo=BANNER_URL, caption=caption, reply_markup=kb, parse_mode="Markdown")
+        # parse_mode="HTML" qildik, bu xavfsizroq
+        await bot.send_photo(message.chat.id, photo=BANNER_URL, caption=caption, reply_markup=kb, parse_mode="HTML")
     except Exception as e:
         logging.error(f"Xato: {e}")
-        await message.answer(caption, reply_markup=kb, parse_mode="Markdown")
+        await message.answer(caption, reply_markup=kb, parse_mode="HTML")
 
-# --- WEB APP'DAN MA'LUMOT QABUL QILISH ---
 @dp.message_handler(content_types=['web_app_data'])
 async def web_app_data_handler(message: types.Message):
     try:
         data = json.loads(message.web_app_data.data)
         now = datetime.datetime.now().strftime("%d.%m.%Y | %H:%M")
         
-        # Web App'dan kelayotgan t_name, desc, time, u_name, u_phone ni ishlatamiz
+        # Ma'lumotlarni xavfsiz yig'ish
+        t_name = str(data.get('t_name', 'Noma\'lum')).replace('<', '&lt;')
+        desc = str(data.get('desc', 'Tavsif yo\'q')).replace('<', '&lt;')
+        u_name = str(data.get('u_name', 'Mijoz')).replace('<', '&lt;')
+        u_phone = str(data.get('u_phone', 'Noma\'lum')).replace('<', '&lt;')
+
         text = (
-            f"🚛 **YANGI YUK E'LONI**\n"
+            f"🚛 <b>YANGI YUK E'LONI</b>\n"
             f"━━━━━━━━━━━━━━\n"
-            f"📍 **Yo'nalish:** #{data.get('t_name', 'Noma\'lum')}\n"
-            f"📦 **Yuk:** {data.get('desc', 'Tavsif yo\'q')}\n"
-            f"⏰ **Vaqt:** {data.get('time', 'Hozir')}\n"
+            f"📍 <b>Yo'nalish:</b> #{t_name}\n"
+            f"📦 <b>Yuk:</b> {desc}\n"
+            f"⏰ <b>Vaqt:</b> {data.get('time', 'Hozir')}\n"
             f"━━━━━━━━━━━━━━\n"
-            f"👤 **Yuboruvchi:** {data.get('u_name', 'Mijoz')}\n"
-            f"📞 **Tel:** {data.get('u_phone', 'Noma\'lum')}\n"
-            f"📅 **Sana:** {now}"
+            f"👤 <b>Yuboruvchi:</b> {u_name}\n"
+            f"📞 <b>Tel:</b> {u_phone}\n"
+            f"📅 <b>Sana:</b> {now}"
         )
 
         kb = InlineKeyboardMarkup().add(
             InlineKeyboardButton("💬 Bog'lanish", url=f"tg://user?id={message.from_user.id}")
         )
 
-        # Kanalga yuborish
-        await bot.send_message(CHANNEL_ID, text, reply_markup=kb, parse_mode="Markdown")
-        
-        # Guruhga yuborish (Topic ID bo'lsa t_id orqali, bo'lmasa oddiy)
+        await bot.send_message(CHANNEL_ID, text, reply_markup=kb, parse_mode="HTML")
         try:
-            await bot.send_message(GROUP_ID, text, message_thread_id=data.get('t_id'), reply_markup=kb, parse_mode="Markdown")
+            # Topic ID xato bo'lsa ham bot to'xtab qolmaydi
+            topic_id = data.get('t_id')
+            await bot.send_message(GROUP_ID, text, message_thread_id=topic_id, reply_markup=kb, parse_mode="HTML")
         except:
-            await bot.send_message(GROUP_ID, text, reply_markup=kb, parse_mode="Markdown")
+            await bot.send_message(GROUP_ID, text, reply_markup=kb, parse_mode="HTML")
 
-        await message.answer("✅ E'loningiz barcha tarmoqlarga yuborildi!")
-        
+        await message.answer("✅ E'loningiz qabul qilindi!")
     except Exception as e:
         logging.error(f"Xato: {e}")
 
-# --- GURUHNI TOZALASH ---
 @dp.message_handler(chat_id=GROUP_ID)
 async def cleaner(message: types.Message):
     if not message.text: return
