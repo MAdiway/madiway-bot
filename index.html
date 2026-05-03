@@ -3,183 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MadiWay Professional v4</title>
+    <title>MadiWay Logistika Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/inputmask@5.0.7/dist/inputmask.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --orange: #FF6B00; --red: #FF3B30; --bg: #F2F4F7; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: #1C1C1E; overflow: hidden; }
+        :root { --orange: #FF6B00; --bg: #F8F9FB; --gray: #8E8E93; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'SF Pro Display', -apple-system, sans-serif; }
+        body { background: var(--bg); overflow-x: hidden; }
 
-        .page { display: none; height: 100vh; overflow-y: auto; padding-bottom: 90px; }
+        .page { display: none; padding-bottom: 100px; animation: fadeIn 0.3s ease; }
         .active { display: block !important; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Login UI */
-        .login-card { padding: 40px 25px; text-align: center; }
-        .input-box { margin-bottom: 15px; text-align: left; }
-        .input-box label { display: block; margin: 0 0 8px 5px; font-weight: 700; font-size: 14px; }
-        .input { 
-            width: 100%; padding: 18px; border-radius: 18px; border: 2px solid #EEE; 
-            font-size: 16px; outline: none; transition: 0.3s;
-        }
+        /* Auth Design */
+        .auth-container { padding: 40px 25px; text-align: center; background: white; min-height: 100vh; }
+        #video-container { width: 180px; height: 180px; border-radius: 50%; overflow: hidden; margin: 20px auto; border: 4px solid var(--orange); display: none; box-shadow: 0 0 25px rgba(255,107,0,0.2); }
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        /* Header & Banner */
+        .header { background: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #F2F2F7; }
+        .user-box { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 42px; height: 42px; background: #E5E5EA; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #555; }
+        
+        .promo-banner { padding: 25px 20px; position: relative; background: #fff; overflow: hidden; }
+        .promo-banner h2 { font-size: 26px; font-weight: 800; line-height: 1.2; }
+        .promo-banner p { color: var(--gray); font-size: 14px; margin-top: 4px; }
+        .truck-img { position: absolute; right: -20px; bottom: 0; width: 180px; z-index: 1; }
+
+        /* Topic List */
+        .topic-list { padding: 15px 20px; }
+        .topic-item { background: white; padding: 18px; border-radius: 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #F0F0F0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s; }
+        .topic-item:active { transform: scale(0.97); background: #fafafa; }
+        .topic-name { font-weight: 600; font-size: 15px; color: #1C1C1E; }
+        .count-tag { background: #FF6B0015; color: var(--orange); padding: 5px 12px; border-radius: 12px; font-weight: 800; font-size: 13px; }
+
+        /* Forms */
+        .input { width: 100%; padding: 16px; border-radius: 14px; border: 1px solid #E5E5EA; margin: 8px 0; font-size: 16px; outline: none; transition: 0.3s; }
         .input:focus { border-color: var(--orange); }
-        .input.error { border-color: var(--red); background: #FFF5F5; }
-        .err-msg { color: var(--red); font-size: 12px; margin: 5px 0 0 5px; display: none; }
+        .btn { width: 100%; padding: 18px; border-radius: 16px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; }
+        .btn-orange { background: var(--orange); color: white; box-shadow: 0 5px 15px rgba(255,107,0,0.2); }
 
-        /* Banner */
-        .banner { background: white; padding: 30px 20px; border-radius: 0 0 40px 40px; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-        .truck-img { position: absolute; right: -10px; bottom: 5px; width: 180px; }
-
-        /* Face ID */
-        .scan-window { width: 240px; height: 240px; border-radius: 50%; border: 5px solid var(--orange); margin: 30px auto; position: relative; overflow: hidden; background: #000; }
-        #video { width: 100%; height: 100%; object-fit: cover; }
-        .scan-line { position: absolute; width: 100%; height: 4px; background: var(--orange); top: 0; animation: scan 2s infinite; }
-        @keyframes scan { from { top: 0; } to { top: 100%; } }
-
-        /* Smart Bot */
-        .bot-card { background: #E3F2FD; padding: 20px; border-radius: 25px; margin: 15px; border: 2px dashed #2196F3; }
-        .btn-main { width: 100%; padding: 18px; border-radius: 18px; border: none; background: var(--orange); color: white; font-weight: 800; font-size: 17px; cursor: pointer; }
-
-        .nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0 30px; border-top: 1px solid #EEE; }
-        .nav-item { text-align: center; color: #BBB; font-size: 11px; font-weight: 700; }
+        /* Modal */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); z-index: 1000; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-content { background: white; border-radius: 28px; padding: 25px; margin-top: 30%; position: relative; }
+        
+        .navbar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; padding: 12px 0 30px; border-top: 1px solid #EEE; justify-content: space-around; z-index: 500; }
+        .nav-item { text-align: center; color: var(--gray); font-size: 11px; font-weight: 600; }
         .nav-item.active { color: var(--orange); }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
+<!-- AUTH PAGE -->
 <div id="p-login" class="page active">
-    <div class="login-card">
-        <h1 style="font-size: 38px; color: var(--orange); font-weight: 900;">MadiWay</h1>
-        <p style="color: gray; margin-bottom: 30px;">Xavfsiz kirish tizimi</p>
+    <div class="auth-container">
+        <h1 style="color:var(--orange); font-size: 38px; letter-spacing: -1px;">MadiWay</h1>
+        <p style="color:var(--gray); margin-bottom: 20px;">Xavfsiz Face ID logistika tizimi</p>
         
-        <div class="input-box">
-            <label>Ism Familiya</label>
-            <input type="text" id="u-name" class="input" placeholder="Yusufxon Axmatov">
-            <div id="e-name" class="err-msg">Ismni to'liq kiriting!</div>
+        <div id="video-container"><video id="video" autoplay playsinline></video></div>
+        
+        <div id="form-box">
+            <input type="text" id="u-name" class="input" placeholder="Ism Familiya (Masalan: Ali Valiyev)">
+            <input type="tel" id="u-phone" class="input" placeholder="+998 (__) ___-__-__">
+            <button class="btn btn-orange" onclick="validateAndAuth()">Tizimga kirish</button>
         </div>
-
-        <div class="input-box">
-            <label>Telefon raqam</label>
-            <input type="tel" id="u-phone" class="input" value="+998" maxlength="13">
-            <div id="e-phone" class="err-msg">Raqam hato! (+998901234567)</div>
-        </div>
-
-        <button class="btn-main" onclick="checkAndScan()">Face ID bilan kirish</button>
     </div>
 </div>
 
-<div id="p-scan" class="page" style="text-align: center; padding-top: 50px;">
-    <h2>Skanerlanmoqda...</h2>
-    <div class="scan-window">
-        <video id="video" autoplay playsinline></video>
-        <div class="scan-line"></div>
-    </div>
-    <p id="scan-text">Kameraga qarab turing</p>
-</div>
-
+<!-- MAIN PAGE -->
 <div id="p-main" class="page">
-    <div class="banner">
-        <p>Salom, <span id="u-display" style="color: var(--orange); font-weight: bold;">...</span></p>
-        <h1 style="font-size: 26px;">Aqlli yuk tashish <br>boshqaruviga xush kelibsiz!</h1>
+    <div class="header">
+        <div class="user-box">
+            <div class="avatar" id="avatar-initial">U</div>
+            <div>
+                <div id="display-name" style="font-weight: 700; font-size: 14px;">...</div>
+                <div id="display-phone" style="font-size: 12px; color: var(--gray);">...</div>
+            </div>
+        </div>
+        <i class="fa-regular fa-bell" style="font-size: 20px;"></i>
+    </div>
+
+    <div class="promo-banner">
+        <h2>Tezkor va <br>ishonchli</h2>
+        <p>Tez yuklang va yo'lga chiqing.</p>
+        <!-- Karobka o'rniga Fura rasmi -->
         <img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-img">
     </div>
 
-    <div class="bot-card">
-        <h3 style="color: #1976D2;"><i class="fa fa-robot"></i> Smart Auto-Bot</h3>
-        <textarea id="bot-msg" class="input" rows="3" placeholder="Rossiya, 20 tonna fura kerak..."></textarea>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <input type="time" id="bot-time" class="input" style="margin:0; flex:1;">
-            <label style="font-size: 12px; flex:1;"><input type="checkbox" id="bot-now" checked> Hozir yuborish</label>
-        </div>
-        <select id="bot-repeat" class="input">
-            <option value="1">1 marta</option>
-            <option value="3">3 marta qaytarish</option>
-            <option value="6">6 marta qaytarish</option>
-        </select>
-        <button class="btn-main" style="background: #2196F3;" onclick="startAutoBot()">Botni yuborish</button>
+    <div class="topic-list" id="topic-container">
+        <!-- Topiclar JS orqali -->
     </div>
-
-    <div id="topics" style="padding: 15px;"></div>
 </div>
 
-<nav class="nav" id="main-nav" style="display: none;">
-    <div class="nav-item active"><i class="fa fa-truck"></i><br>Yuklar</div>
-    <div class="nav-item" onclick="alert('Profil')"><i class="fa fa-user"></i><br>Profil</div>
+<!-- YUK MODAL -->
+<div id="yukModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modal-title" style="margin-bottom: 15px; font-size: 20px;">Yuk qo'shish</h3>
+        <textarea id="yuk-desc" class="input" rows="4" placeholder="Yuk turi va manzili haqida to'liq yozing..."></textarea>
+        
+        <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+            <input type="time" id="yuk-time" class="input" style="flex:1" disabled>
+            <label style="display:flex; align-items:center; gap:6px; font-size: 14px; font-weight: 600;">
+                <input type="checkbox" id="is-now" checked onchange="toggleTime()"> Hozir
+            </label>
+        </div>
+
+        <button class="btn btn-orange" onclick="submitToBot()">Guruhga yuborish</button>
+        <button class="btn" style="background:none; color:var(--gray); margin-top: 10px;" onclick="closeModal()">Bekor qilish</button>
+    </div>
+</div>
+
+<nav class="navbar" id="main-nav" style="display:none;">
+    <div class="nav-item active"><i class="fa-solid fa-house"></i><br>Asosiy</div>
+    <div class="nav-item" onclick="tg.showAlert('Yuklar tarixi bo\'sh')"><i class="fa-solid fa-clock-rotate-left"></i><br>Tarix</div>
+    <div class="nav-item"><i class="fa-solid fa-gear"></i><br>Sozlamalar</div>
 </nav>
+
+<canvas id="canvas" style="display:none;"></canvas>
 
 <script>
     const tg = window.Telegram.WebApp;
-    const ADMIN_ID = 5406082447;
-    const myID = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 0;
+    tg.expand();
+
+    // Telefon maskasi (Professional)
+    const phoneElement = document.getElementById('u-phone');
+    const mask = Inputmask({"mask": "+998 (99) 999-99-99"});
+    mask.mask(phoneElement);
 
     const topics = [
-        {name:"Europa", id:2}, {name:"Rossiya", id:4}, {name:"Qirg'iziston", id:6},
-        {name:"Kazakistan", id:8}, {name:"Eron", id:10}, {name:"Tojikston", id:12},
-        {name:"Germaniya", id:14}, {name:"Belarusiya", id:16}, {name:"Gruziya", id:18}, {name:"Ukraina", id:20}
+        { name: "Rossiya", id: 4, count: 235 },
+        { name: "Europa", id: 2, count: 42 },
+        { name: "Qirg'iziston", id: 6, count: 64 },
+        { name: "Kazakistan", id: 8, count: 63 },
+        { name: "Eron", id: 10, count: 15 },
+        { name: "Tojikston", id: 12, count: 29 },
+        { name: "Germaniya", id: 14, count: 21 },
+        { name: "Belarus", id: 16, count: 12 },
+        { name: "Gruziya", id: 18, count: 9 },
+        { name: "Ukraina", id: 20, count: 6 }
     ];
 
-    function checkAndScan() {
-        const name = document.getElementById('u-name');
-        const phone = document.getElementById('u-phone');
-        const phoneRegex = /^\+998\d{9}$/;
+    let selectedID = 0;
 
-        let ok = true;
-        if(name.value.length < 3) { name.classList.add('error'); document.getElementById('e-name').style.display='block'; ok=false; }
-        if(!phoneRegex.test(phone.value)) { phone.classList.add('error'); document.getElementById('e-phone').style.display='block'; ok=false; }
+    function validateAndAuth() {
+        const name = document.getElementById('u-name').value.trim();
+        const phone = document.getElementById('u-phone').value;
 
-        if(ok) startScan();
+        // Ism familiya tekshiruvi
+        if (name.split(' ').length < 2) {
+            tg.showAlert("Xato: Iltimos, ism va familiyangizni to'liq yozing!");
+            return;
+        }
+
+        // Telefon raqam tekshiruvi
+        if (!Inputmask.isValid(phone, {"mask": "+998 (99) 999-99-99"})) {
+            tg.showAlert("Xato: Telefon raqami noto'g'ri kiritildi!");
+            return;
+        }
+
+        startFaceAuth(name, phone);
     }
 
-    async function startScan() {
-        document.getElementById('p-login').classList.remove('active');
-        document.getElementById('p-scan').classList.add('active');
-        const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user"}});
-        document.getElementById('video').srcObject = stream;
-
-        setTimeout(() => {
-            const user = { name: document.getElementById('u-name').value, phone: document.getElementById('u-phone').value, id: myID };
-            localStorage.setItem('madi_auth_v4', JSON.stringify(user));
-            stream.getTracks().forEach(t => t.stop());
-            location.reload();
-        }, 3000);
-    }
-
-    function startAutoBot() {
-        const msg = document.getElementById('bot-msg').value.toLowerCase();
-        const repeat = document.getElementById('bot-repeat').value;
-        const now = document.getElementById('bot-now').checked;
+    async function startFaceAuth(name, phone) {
+        document.getElementById('video-container').style.display = 'block';
+        document.getElementById('form-box').style.opacity = '0.3';
         
-        let found = topics.find(t => msg.includes(t.name.toLowerCase()));
-        if(!found) return alert("Yo'nalish topilmadi! Iltimos, davlat nomini yozing.");
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            document.getElementById('video').srcObject = stream;
+            
+            setTimeout(() => {
+                const canvas = document.getElementById('canvas');
+                canvas.getContext('2d').drawImage(document.getElementById('video'), 0, 0);
+                stream.getTracks().forEach(t => t.stop());
+                
+                localStorage.setItem('madi_session', JSON.stringify({name, phone}));
+                tg.sendData(JSON.stringify({action: "login_success", name, phone}));
+                location.reload();
+            }, 3000);
+        } catch(e) {
+            tg.showAlert("Xato: Face ID uchun kamera ruxsati kerak!");
+        }
+    }
 
+    function renderTopics() {
+        document.getElementById('topic-container').innerHTML = topics.map(t => `
+            <div class="topic-item" onclick="openYuk(${t.id}, '${t.name}')">
+                <span class="topic-name">${t.name}</span>
+                <span class="count-tag">${t.count} ta yuk</span>
+            </div>
+        `).join('');
+    }
+
+    function openYuk(id, name) {
+        selectedID = id;
+        document.getElementById('modal-title').innerText = name;
+        document.getElementById('yukModal').style.display = 'block';
+    }
+
+    function closeModal() { document.getElementById('yukModal').style.display = 'none'; }
+    function toggleTime() { document.getElementById('yuk-time').disabled = document.getElementById('is-now').checked; }
+
+    function submitToBot() {
+        const desc = document.getElementById('yuk-desc').value;
+        const time = document.getElementById('is-now').checked ? "Hozir" : document.getElementById('yuk-time').value;
+
+        if(!desc) return tg.showAlert("Yuk ma'lumotini yozing!");
+        if(!document.getElementById('is-now').checked && !document.getElementById('yuk-time').value) {
+            tg.showAlert("Xato: Vaqtni tanlamadingiz!");
+            return;
+        }
+
+        const user = JSON.parse(localStorage.getItem('madi_session'));
         tg.sendData(JSON.stringify({
-            action: "auto_yuk",
-            topic_id: found.id,
-            topic_name: found.name,
-            text: msg,
-            repeat: repeat,
-            now: now,
-            time: document.getElementById('bot-time').value
+            action: "post_yuk",
+            topic_id: selectedID,
+            text: desc,
+            time: time,
+            user: user.name,
+            phone: user.phone
         }));
-        tg.showAlert("Bot yukni qabul qildi!");
+        tg.close();
     }
 
     window.onload = () => {
-        const auth = localStorage.getItem('madi_auth_v4');
-        if(auth) {
-            const user = JSON.parse(auth);
-            document.getElementById('u-display').innerText = user.name;
-            document.getElementById('main-nav').style.display = 'flex';
+        const session = localStorage.getItem('madi_session');
+        if(session) {
+            const data = JSON.parse(session);
             document.getElementById('p-login').classList.remove('active');
             document.getElementById('p-main').classList.add('active');
-            
-            document.getElementById('topics').innerHTML = topics.map(t => `
-                <div style="background:white; padding:15px; border-radius:15px; margin-bottom:10px; display:flex; justify-content:space-between;">
-                    <b>${t.name}</b> <i class="fa fa-arrow-right" style="color:var(--orange)"></i>
-                </div>
-            `).join('');
+            document.getElementById('main-nav').style.display = 'flex';
+            document.getElementById('display-name').innerText = data.name;
+            document.getElementById('display-phone').innerText = data.phone;
+            document.getElementById('avatar-initial').innerText = data.name[0].toUpperCase();
+            renderTopics();
         }
-    }
+    };
 </script>
 </body>
 </html>
