@@ -1,75 +1,84 @@
 import logging
 import json
+import datetime
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
-# Loglarni sozlash
-logging.basicConfig(level=logging.INFO)
-
-# --- KONFIGURATSIYA ---
-# Yangi API tokeningiz
+# Sozlamalar
 TOKEN = "8791239714:AAGeDUktKzciq9ftUp4lZZOzIuyItQXv5wM" 
-# Ma'lumot tushadigan guruh va kanal ID'lari
 GROUP_ID = -1003996104316 
-CHANNEL_USER = "@MADIWAYy" 
-# Sizning GitHub sahifangiz manzili
-WEB_APP_URL = "https://madiway.github.io/madiway-bot/"
+CHANNEL_ID = "@MADIWAYy" 
+BANNER_URL = "https://raw.githubusercontent.com/madiway/madiway-bot/main/madiway_banner.png"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
+# So'kinishlar ro'yxati (Buni kengaytirishingiz mumkin)
+BAD_WORDS = ["sokish1", "yomon_soz", "admin_emas , "jalab , oneniami" , "yiban , "ko't , "skaman , "pidaraz , "ko'tingdi qis , skachat", "qo'toq", "am", "qotoq", "shalpang", 
+    "iflos", "yaramas", "itdan tarqagan", "dalbayob", "axmoq", "onangni", "otangni", 
+    "gey", "pider", "gandon", "lox", "tovuqmiya", "manqurt", "qaltis", "beshaka"
+"]
+
 @dp.message_handler(commands=['start'])
 async def start_handler(message: types.Message):
-    # Kodingizdagi tugma bilan bog'lanish
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(KeyboardButton(text="🚛 Yuk yuborish", web_app=WebAppInfo(url=WEB_APP_URL)))
+    kb.add(KeyboardButton(text="🚛 Yuk yuborish", web_app=WebAppInfo(url="Sizning_URL")))
     
-    await message.answer(
-        "🏔 **MadiWay Logistics tizimiga xush kelibsiz!**\n\n"
-        "Yuk joylashtirish uchun pastdagi tugmani bosing.",
-        reply_markup=kb,
-        parse_mode="Markdown"
+    caption = (
+        "🏔 **MadiWay | Global Logistics & Dispatch 🚀**\n\n"
+        "Xalqaro yuk tashish va professional dispetcherlik xizmatlari tarmog'iga xush kelibsiz!\n"
+        "📍 O'zbekiston 🇺🇿, Qozog'iston 🇰🇿, Rossiya 🇷🇺, Ozarbayjon 🇦🇿\n\n"
+        "🚛 **MadiWay — Sizning yukingiz, bizning mas'uliyatimiz!**"
     )
+    await bot.send_photo(chat_id=message.chat.id, photo=BANNER_URL, caption=caption, reply_markup=kb, parse_mode="Markdown")
 
 @dp.message_handler(content_types=['web_app_data'])
 async def handle_webapp_data(message: types.Message):
+    res = json.loads(message.web_app_data.data)
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    
+    report = (
+        f"🚛 **YANGI YUK E'LONI**\n\n"
+        f"📍 Yo'nalish: #{res['t_name']}\n"
+        f"📦 Tavsif: {res['desc']}\n"
+        f"⏰ Vaqt: {res['time']}\n"
+        f"👤 Yuboruvchi: {res['u_name']}\n"
+        f"📅 Sana: {now}\n"
+    )
+
+    # Kanal uchun 5 ta maxsus tugma
+    channel_kb = InlineKeyboardMarkup(row_width=2)
+    channel_kb.add(
+        InlineKeyboardButton("🤖 Bot", url="https://t.me/MADIWAYy_bot"),
+        InlineKeyboardButton("📩 Yukni egasi (Lichka)", url=f"tg://user?id={message.from_user.id}"),
+        InlineKeyboardButton("📞 Yukchi raqami", callback_data=f"show_tel_{res['u_phone']}"),
+        InlineKeyboardButton("📢 Kanal", url="https://t.me/MADIWAYy"),
+        InlineKeyboardButton("👥 Guruh", url="https://t.me/MADIWAY_Gr")
+    )
+
+    await bot.send_message(chat_id=CHANNEL_ID, text=report, reply_markup=channel_kb, parse_mode="Markdown")
     try:
-        # Siz yuborgan index.html dagi tg.sendData ichidagi ma'lumotlarni o'qiydi
-        res = json.loads(message.web_app_data.data)
-        
-        # Xabarni chiroyli formatda tayyorlaymiz
-        report = (
-            f"🚛 **YANGI YUK E'LONI**\n\n"
-            f"🌍 **Yo'nalish:** #{res['t_name']}\n"
-            f"📦 **Tavsif:** {res['desc']}\n"
-            f"⏰ **Vaqt:** {res['time']}\n"
-            f"👤 **Mijoz:** {res['u_name']}\n"
-            f"📞 **Tel:** {res['u_phone']}\n\n"
-            f"🤖 #MadiWay_System"
-        )
+        await bot.send_message(chat_id=GROUP_ID, message_thread_id=res['t_id'], text=report)
+    except:
+        await bot.send_message(chat_id=GROUP_ID, text=report)
 
-        # 1. Telegram kanalga yuborish
-        await bot.send_message(chat_id=CHANNEL_USER, text=report, parse_mode="Markdown")
-        
-        # 2. Guruhga (tegishli topic_id bilan) yuborish
-        try:
-            # res['t_id'] - bu sizning kodingizdagi topics ichidagi id
-            await bot.send_message(
-                chat_id=GROUP_ID, 
-                message_thread_id=res['t_id'], 
-                text=report, 
-                parse_mode="Markdown"
-            )
-        except Exception as e:
-            # Agar topic topilmasa, oddiy guruh xabari sifatida yuboradi
-            logging.warning(f"Topic xatosi: {e}")
-            await bot.send_message(chat_id=GROUP_ID, text=report, parse_mode="Markdown")
+# Guruh filtri (Reklama va So'kinish uchun)
+@dp.message_handler(chat_id=GROUP_ID)
+async def monitor_group(message: types.Message):
+    if message.from_user.is_bot: return
+    
+    # Reklama tekshiruvi (faqat adminlarga mumkin)
+    if ("http" in message.text or "@" in message.text) and not (message.from_user.username in ["madiways", "yusufxonpro1"]):
+        await message.delete()
+        return
 
-        await message.answer("✅ Rahmat! Yukingiz kanal va guruhga muvaffaqiyatli e'lon qilindi.")
-
-    except Exception as e:
-        logging.error(f"Xatolik yuz berdi: {e}")
-        await message.answer("❌ Ma'lumotni yuborishda texnik xatolik yuz berdi.")
+    # So'kinish tekshiruvi
+    if any(word in message.text.lower() for word in BAD_WORDS):
+        await message.delete()
+        # 2 kunga ban qilish
+        until = datetime.datetime.now() + datetime.timedelta(days=2)
+        await bot.restrict_chat_member(message.chat.id, message.from_user.id, until_date=until)
+        await message.answer(f"🚫 {message.from_user.first_name} 2 kunga ban qilindi (Sabab: So'kinish)")
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)
