@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MadiWay App</title>
+    <title>MadiWay Logistics</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/inputmask@5.0.7/dist/inputmask.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -14,7 +14,7 @@
         .page { display: none; padding-bottom: 80px; }
         .active { display: block !important; }
         .banner { background: white; padding: 25px 20px; border-radius: 0 0 30px 30px; position: relative; height: 160px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-        .truck-img { position: absolute; right: -10px; bottom: 0; width: 180px; z-index: 1; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
+        .truck-img { position: absolute; right: -10px; bottom: 0; width: 180px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); z-index: 1; }
         .card { background: white; margin: 10px 15px; padding: 18px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; cursor: pointer; }
         .input { width: 100%; padding: 15px; border-radius: 15px; border: 1.5px solid #DDD; margin-bottom: 12px; outline: none; font-size: 16px; background: #F9F9FB; }
         .btn-send { background: var(--orange); color: white; border: none; padding: 18px; border-radius: 18px; width: 100%; font-weight: 800; font-size: 16px; }
@@ -30,7 +30,7 @@
         <h1 style="color: var(--orange); font-size: 40px; font-weight: 900;">MadiWay</h1>
         <input type="text" id="u-name" class="input" placeholder="Ism Familiya">
         <input type="tel" id="u-phone" class="input" placeholder="+998 (__) ___-__-__">
-        <button class="btn-send" onclick="startAuth()">Profilni ochish</button>
+        <button class="btn-send" onclick="startAuth()">Kirish</button>
     </div>
 </div>
 
@@ -70,7 +70,7 @@
     let selId = 0, selName = "";
 
     window.onload = () => {
-        const saved = localStorage.getItem('madi_session_final');
+        const saved = localStorage.getItem('madi_session_v5');
         if(saved) loginSuccess(JSON.parse(saved));
     };
 
@@ -79,7 +79,7 @@
         const p = document.getElementById('u-phone').value;
         if(n.length < 3 || p.includes('_')) return alert("Ma'lumotlarni to'ldiring!");
         const user = { n, p };
-        localStorage.setItem('madi_session_final', JSON.stringify(user));
+        localStorage.setItem('madi_session_v5', JSON.stringify(user));
         loginSuccess(user);
     }
 
@@ -101,14 +101,14 @@
 
     function openModal(id, name) {
         selId = id; selName = name;
-        document.getElementById('m-title').innerText = name + " yo'nalishi";
+        document.getElementById('m-title').innerText = name;
         document.getElementById('mod').style.display = 'block';
     }
 
     function finalSend() {
         const desc = document.getElementById('yuk-desc').value;
         const time = document.getElementById('is-now').checked ? "Hozir" : document.getElementById('yuk-time').value;
-        const user = JSON.parse(localStorage.getItem('madi_session_final'));
+        const user = JSON.parse(localStorage.getItem('madi_session_v5'));
         if(!desc) return alert("Yuk tavsifini yozing!");
 
         tg.sendData(JSON.stringify({
