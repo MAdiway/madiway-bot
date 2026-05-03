@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
 # --- KONFIGURATSIYA ---
-TOKEN = "8791239714:AAGeDUktKzciq9ftUp4lZZOzIuyItQXv5wM"
+TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c"
 GROUP_ID = -1003996104316
 CHANNEL_ID = "@MADIWAYy"
 # Rasm manzili (GitHub'dagi manzilingiz)
