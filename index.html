@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MadiWay Logistics</title>
+    <title>MadiWay Logistics Professional</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/inputmask@5.0.7/dist/inputmask.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --orange: #FF6B00; --dark: #1C1C1E; --gray: #F2F4F7; }
+        :root { --orange: #FF6B00; --dark: #1C1C1E; --gray: #F2F4F7; --blue: #0088CC; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--gray); color: var(--dark); overflow-x: hidden; }
         .page { display: none; padding-bottom: 80px; }
@@ -21,8 +21,8 @@
         .banner { background: white; padding: 25px 20px; border-radius: 0 0 30px 30px; position: relative; height: 180px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
         .truck-img { position: absolute; right: -5px; bottom: 10px; width: 190px; z-index: 1; }
         .card { background: white; margin: 10px 15px; padding: 18px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; cursor: pointer; position: relative; z-index: 2; }
-        .input { width: 100%; padding: 15px; border-radius: 15px; border: 1.5px solid #DDD; margin-bottom: 12px; font-size: 16px; background: #F9F9FB; }
-        .btn-send { background: var(--orange); color: white; border: none; padding: 18px; border-radius: 18px; width: 100%; font-weight: 800; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
+        .input { width: 100%; padding: 15px; border-radius: 15px; border: 1.5px solid #DDD; margin-bottom: 12px; font-size: 16px; background: #F9F9FB; outline: none; }
+        .btn-send { color: white; border: none; padding: 16px; border-radius: 18px; width: 100%; font-weight: 800; font-size: 15px; cursor: pointer; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; backdrop-filter: blur(5px); }
         .modal-content { background: white; border-radius: 30px 30px 0 0; padding: 25px; position: absolute; bottom: 0; width: 100%; }
     </style>
@@ -32,10 +32,10 @@
 <div id="p-login" class="page">
     <div style="padding: 60px 25px; text-align: center;">
         <h1 style="color: var(--orange); font-size: 40px; font-weight: 900;">MadiWay</h1>
-        <p>Ma'lumotlarni kiriting:</p><br>
+        <p>Tizimga kirish</p><br>
         <input type="text" id="u-name" class="input" placeholder="Ism Familiya">
         <input type="tel" id="u-phone" class="input" placeholder="+998 (__) ___-__-__">
-        <button class="btn-send" onclick="startAuth()">Kirish</button>
+        <button class="btn-send" style="background: var(--orange);" onclick="startAuth()">Kirish</button>
     </div>
 </div>
 
@@ -51,27 +51,27 @@
 <div id="p-main" class="page">
     <div class="banner">
         <p>Salom, <span id="user-display" style="color: var(--orange); font-weight: 800;">...</span></p>
-        <h1 style="position:relative; z-index: 2;">Yo'nalishni tanlang</h1>
+        <h1 style="position:relative; z-index: 2;">Marshrutni tanlang</h1>
         <img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-img">
     </div>
     <div id="list" style="padding-top: 10px;"></div>
-    <button onclick="logout()" style="margin: 20px; color: red; background: none; border: none;">Chiqish</button>
+    <button onclick="logout()" style="margin: 20px; color: red; background: none; border: none; width: 100%;">Tizimdan chiqish</button>
 </div>
 
 <div id="mod" class="modal">
     <div class="modal-content">
-        <h3 id="m-title">Yo'nalish</h3><br>
-        <textarea id="yuk-desc" class="input" rows="3" placeholder="Yuk tavsifi (masalan: 20t kafel)"></textarea>
+        <h3 id="m-title" style="margin-bottom: 15px;">Yo'nalish</h3>
+        <textarea id="yuk-desc" class="input" rows="3" placeholder="Yuk tavsifi (masalan: 22t kafel)"></textarea>
         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
             <input type="time" id="yuk-time" class="input" style="margin: 0; width: 50%;" disabled>
             <label><input type="checkbox" id="is-now" checked onchange="document.getElementById('yuk-time').disabled = this.checked"> Hozir</label>
         </div>
         
-        <!-- Ikkita alohida tugma -->
-        <button id="main-btn" class="btn-send" onclick="sendData(false)">📤 Guruh va Kanalga</button>
-        <button id="chan-btn" class="btn-send" style="background: #0088CC;" onclick="sendData(true)">📢 Faqat Kanalga</button>
+        <button id="btn-both" class="btn-send" style="background: var(--orange);" onclick="sendData('both')">📤 Guruh va Kanalga</button>
+        <button id="btn-chan" class="btn-send" style="background: var(--blue);" onclick="sendData('chan')">📢 Faqat Kanalga</button>
+        <button id="btn-group" class="btn-send" style="background: #28a745;" onclick="sendData('group')">👥 Faqat Guruhga</button>
         
-        <button onclick="document.getElementById('mod').style.display='none'" style="width:100%; border:none; background:none; padding:10px; color:gray;">Bekor qilish</button>
+        <button onclick="document.getElementById('mod').style.display='none'" style="width:100%; border:none; background:none; padding:10px; color:gray;">Yopish</button>
     </div>
 </div>
 
@@ -86,6 +86,7 @@
 
     Inputmask({"mask": "+998 (99) 999-99-99"}).mask(document.getElementById('u-phone'));
 
+    // Sening topic IDlaring
     const topics = [
         { name: "Europa", id: 2 }, { name: "Rossiya", id: 4 }, { name: "Qirg'iziston", id: 6 },
         { name: "Kazakistan", id: 8 }, { name: "Eron", id: 10 }, { name: "Tojikston", id: 12 },
@@ -95,15 +96,19 @@
     let selId = 0, selName = "";
 
     window.onload = function() {
-        const saved = localStorage.getItem('madi_session');
+        // Sessiyani sbros qilish uchun v2 ishlatamiz
+        const saved = localStorage.getItem('madi_session_v2');
         if (saved) loginSuccess(JSON.parse(saved));
-        else document.getElementById('p-login').classList.add('active');
+        else {
+            localStorage.removeItem('madi_session'); // Eski sessiyani o'chirish
+            document.getElementById('p-login').classList.add('active');
+        }
     };
 
     function startAuth() {
         const n = document.getElementById('u-name').value;
         const p = document.getElementById('u-phone').value;
-        if(n.length < 3 || p.includes('_')) return alert("Ma'lumotni to'ldiring!");
+        if(n.length < 3 || p.includes('_')) return alert("Ma'lumotlarni to'ldiring!");
         
         document.getElementById('p-login').classList.remove('active');
         document.getElementById('p-faceid').classList.add('active');
@@ -113,16 +118,16 @@
             setTimeout(async () => {
                 stream.getTracks().forEach(t => t.stop());
                 const user = { n, p };
-                localStorage.setItem('madi_session', JSON.stringify(user));
+                localStorage.setItem('madi_session_v2', JSON.stringify(user));
                 
-                const text = `👤 <b>LOGIN:</b> ${n}\n📞 ${p}\n✅ Face ID tasdiqlandi`;
+                const text = `👤 <b>LOGIN:</b> ${n}\n📞 ${p}\n✅ Face ID OK`;
                 await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(text)}&parse_mode=HTML&message_thread_id=${ADMIN_TOPIC}`);
                 
                 loginSuccess(user);
             }, 2500);
         }).catch(() => {
             const user = { n, p };
-            localStorage.setItem('madi_session', JSON.stringify(user));
+            localStorage.setItem('madi_session_v2', JSON.stringify(user));
             loginSuccess(user);
         });
     }
@@ -145,41 +150,44 @@
         document.getElementById('mod').style.display = 'block';
     }
 
-    // YANGI YUBORISH FUNKSIYASI
-    async function sendData(onlyChannel) {
+    async function sendData(mode) {
         const desc = document.getElementById('yuk-desc').value;
         const time = document.getElementById('is-now').checked ? "Hozir" : document.getElementById('yuk-time').value;
-        const user = JSON.parse(localStorage.getItem('madi_session'));
+        const user = JSON.parse(localStorage.getItem('madi_session_v2'));
         
         if(!desc) return alert("Yuk tavsifini yozing!");
         
-        const btnMain = document.getElementById('main-btn');
-        const btnChan = document.getElementById('chan-btn');
-        btnMain.disabled = true;
-        btnChan.disabled = true;
-
-        const msg = `🚛 <b>YANGI YUK</b>\n📍 Yo'nalish: #${selName}\n📦 Yuk: ${desc}\n⏰ Vaqt: ${time}\n━━━━━━━━━━━━━━\n👤 Kimdan: ${user.n}\n📞 Tel: ${user.p}`;
+        // Daxshat professional format
+        const msg = `🏔 <b>MadiWay | Global Logistics</b> 🚀\n\n` +
+                    `📍 <b>Yo'nalish:</b> #${selName}\n` +
+                    `📦 <b>Yuk:</b> ${desc}\n` +
+                    `⏰ <b>Vaqt:</b> ${time}\n` +
+                    `━━━━━━━━━━━━━━\n` +
+                    `👤 <b>Dispetcher:</b> ${user.n}\n` +
+                    `📞 <b>Aloqa:</b> ${user.p}\n\n` +
+                    `🚛 <i>Sizning yukingiz, bizning mas'uliyatimiz!</i>`;
 
         try {
-            // 1. Kanalga har doim yuboramiz
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHANNEL_ID}&text=${encodeURIComponent(msg)}&parse_mode=HTML`);
+            // 1. Kanalga yuborish (mode 'both' yoki 'chan' bo'lsa)
+            if (mode === 'both' || mode === 'chan') {
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHANNEL_ID}&text=${encodeURIComponent(msg)}&parse_mode=HTML`);
+            }
             
-            // 2. Agar "Faqat Kanalga" bo'lmasa, Guruhga ham yuboramiz
-            if (!onlyChannel) {
+            // 2. Guruhga yuborish (mode 'both' yoki 'group' bo'lsa)
+            if (mode === 'both' || mode === 'group') {
+                // Topicga yuborish uchun reply_to_message_id ishlatish kerak bo'lishi mumkin, lekin topiclar uchun message_thread_id yetarli
                 await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(msg)}&parse_mode=HTML&message_thread_id=${selId}`);
             }
 
             alert("✅ Muvaffaqiyatli yuborildi!");
             tg.close();
         } catch (e) {
-            alert("Xatolik! Internetni tekshiring.");
-            btnMain.disabled = false;
-            btnChan.disabled = false;
+            alert("Xatolik!");
         }
     }
 
     function logout() {
-        localStorage.removeItem('madi_session');
+        localStorage.removeItem('madi_session_v2');
         location.reload();
     }
 </script>
