@@ -1,4 +1,5 @@
 import asyncio
+import os
 from pyrogram import Client, filters, types
 from pyrogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 
@@ -7,7 +8,7 @@ API_ID = 35916395
 API_HASH = "0a59d023a618c1045b576a5bc0697200"
 BOT_TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c"
 
-# Sen yuborgan YANGI sessiya kodi
+# Sening eng oxirgi yuborgan sessiya koding
 SESSION_STRING = "AgIkCmsAXSW0flyihTLmu1-JWlCeesmW4M_qmRqzcSdTcV28DOqkhkGGbo37stcz44etYaFtrnPjZi-YzJ7PNEh75QfH4spOkTgC_ThKf3FLgXgwKakN-eADRxBRPWj5RAjSSmZA_Vm4YjZhqPpanJzQlh4AQEHGQflPWI0hfa0_7dX-lce6X3aQTsgu-Va5k3_tauo3T5kgZtLyMxElo2sxHeuvZIy_mwvIYpyBfSfNgOvC-JNuzv0SEkAuL8ln3usEF_6j4YFu8ObtBmzOwgS1h6evvsnlEbiIQff-UY7rc6PMwz4xlOvUL6O68XaN90VMZxmkZoGm8D2FlsbxBpJhqNOlWQAAAAHMYynbAA"
 
 TARGET_CHANNEL = "@MADIWAYy"
@@ -15,7 +16,7 @@ MY_GROUP_ID = -1002441995574
 WEB_APP_URL = "https://madiway.uz"
 IMAGE_URL = "https://i.ibb.co/vzYm8Yx/madiway-banner.jpg"
 
-# Mavzular xaritasi
+# Yo'nalishlar (Topic ID)
 TOPIC_MAP = {
     "europa": 2, "evropa": 2, "rossiya": 4, "russia": 4, "россия": 4, "рф": 4,
     "qirg": 6, "kyrgyzstan": 6, "kazak": 8, "qozog": 8, "казахстан": 8,
@@ -23,18 +24,19 @@ TOPIC_MAP = {
     "germaniya": 14, "germany": 14, "belarus": 16, "gruziya": 18, "ukraina": 20
 }
 
+# Kalit so'zlar
 KEYWORDS = ["yuk bor", "kerak", "fura", "gruz", "рейс", "груз", "фура", "камаз", "cargo", "truck"]
 
+# Clientlar
 bot = Client("madiway_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 user = Client("madiway_user", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
-# --- 1. BOT: /START (YANGILANGAN MATN) ---
+# --- 1. BOT: START BUYRUG'I ---
 @bot.on_message(filters.command("start") & filters.private)
 async def start_handler(client, message):
-    # Matnni o'zgartirdim, yangilanganini bilish uchun
     text = (
-        "🏔 <b>MadiWay | Yangilangan Tizim</b> ✅\n\n"
-        "Sessiya muvaffaqiyatli yangilandi! Endi barcha yuklar avtomatik monitoring qilinadi.\n\n"
+        "🏔 <b>MadiWay | Versiya 2.0</b> ✅\n\n"
+        "Tizim muvaffaqiyatli yangilandi va monitoring boshlandi!\n\n"
         "🚚 <b>Yuk yuborish uchun pastdagi tugmani bosing:</b>"
     )
     keyboard = ReplyKeyboardMarkup(
@@ -46,15 +48,17 @@ async def start_handler(client, message):
     except:
         await message.reply_text(text, reply_markup=keyboard)
 
-# --- 2. USERBOT: YUK YIG'ISH ---
+# --- 2. USERBOT: YUKLARNI MONITORING QILISH ---
 @user.on_message(filters.group & filters.text)
 async def collector_handler(client, message):
+    # O'z guruhimizni tekshirmaymiz
     if message.chat.id == MY_GROUP_ID:
         return
 
     msg_text = message.text.lower()
+    
     if any(word in msg_text for word in KEYWORDS):
-        thread_id = 1
+        thread_id = 1 # General
         route_name = "ANIQLANMAGAN"
         
         for key, t_id in TOPIC_MAP.items():
@@ -72,21 +76,23 @@ async def collector_handler(client, message):
             f"━━━━━━━━━━━━━━\n"
             f"🔗 <b>Manba:</b> {message.chat.title}\n"
             f"👤 <b>Aloqa:</b> {contact}\n\n"
-            f"✅ <i>MadiWay orqali nusxalandi!</i>"
+            f"✅ <i>MadiWay tizimi tomonidan nusxalandi.</i>"
         )
 
         try:
+            # Kanalga yuborish
             await user.send_message(TARGET_CHANNEL, final_msg)
+            # Guruhdagi mavzuga yuborish
             await user.send_message(MY_GROUP_ID, final_msg, reply_to_message_id=thread_id)
-            await asyncio.sleep(2)
+            await asyncio.sleep(2) 
         except Exception as e:
-            print(f"⚠️ Xato: {e}")
+            print(f"Xato: {e}")
 
+# --- ISHGA TUSHIRISH ---
 async def start_all():
-    print("🚀 MadiWay yangilangan tizimi ishga tushmoqda...")
+    print("--- MADIWAY TIZIMI ISHGA TUSHDI ---")
     await bot.start()
     await user.start()
-    print("✅ Yangilanish yakunlandi!")
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
