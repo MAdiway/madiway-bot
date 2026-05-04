@@ -7,13 +7,13 @@ API_ID = 35916395
 API_HASH = "0a59d023a618c1045b576a5bc0697200"
 BOT_TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c"
 
-# REPLIT YOKI BOTDAN OLGAN UZUN KODINGNI SHU YERGA QO'Y (Tirnoq ichida)
-SESSION_STRING = "BU_YERGA_UZUN_KODNI_QOYING" 
+# Sen yuborgan sessiya kodi ulandi
+SESSION_STRING = "AgIkCmsAwS1F_4dPcGH9-HP8E25pCDnRhekAUQnSfAEuHhCKIwJgCvVc66ntadG-dIdKqE8EMysOGIc4HQjDz9CGb0n3dOYHHrbLg70JS9Hs42bM4RoM5xiZ7kB5YMgX7fA417fLkiQphUKuMvkcaKlqu2_2-i41hT0MctQBFrBUtdJWL2dDxiVCD_gasCQeuEVt_a3GT9wAt8X_-sgbXZoyhRxImizFR2GeBoVpzXI0lTsXy-jwoMquByh79CBoPn-gkR_8XSbKFro_vQrrxs3GmqB8HXEiPp6q1cy09FznlDAb9iDPwEYHDNz9DnUh4HonJTLuCL-rwxwpMC_RGXBHcFiskwAAAAHMYynbAA"
 
 TARGET_CHANNEL = "@MADIWAYy"
 MY_GROUP_ID = -1002441995574
 WEB_APP_URL = "https://madiway.uz"
-IMAGE_URL = "https://i.ibb.co/vzYm8Yx/madiway-banner.jpg" 
+IMAGE_URL = "https://i.ibb.co/vzYm8Yx/madiway-banner.jpg"
 
 # Mavzular xaritasi (Topic ID-lari)
 TOPIC_MAP = {
@@ -24,10 +24,7 @@ TOPIC_MAP = {
 }
 
 # Yuk qidirish kalit so'zlari
-KEYWORDS = [
-    "yuk bor", "kerak", "fura", "gruz", "рейс", "груз", 
-    "фура", "камаз", "cargo", "truck", "needed"
-]
+KEYWORDS = ["yuk bor", "kerak", "fura", "gruz", "рейс", "груз", "фура", "камаз", "cargo", "truck"]
 
 # Clientlarni yaratish
 bot = Client("madiway_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
@@ -53,18 +50,15 @@ async def start_handler(client, message):
 # --- 2. USERBOT: BARCHA GURUHLARDAN YUK YIG'ISH ---
 @user.on_message(filters.group & filters.text)
 async def collector_handler(client, message):
-    # O'z guruhimizdan nusxa olmaslik uchun
     if message.chat.id == MY_GROUP_ID:
         return
 
     msg_text = message.text.lower()
     
-    # Yukga oidligini tekshirish
     if any(word in msg_text for word in KEYWORDS):
-        thread_id = 1  # Umumiy (General)
+        thread_id = 1
         route_name = "ANIQLANMAGAN"
         
-        # Yo'nalishni (Topic) aniqlash
         for key, t_id in TOPIC_MAP.items():
             if key in msg_text:
                 thread_id = t_id
@@ -84,20 +78,18 @@ async def collector_handler(client, message):
         )
 
         try:
-            # Kanalga yuborish
             await user.send_message(TARGET_CHANNEL, final_msg)
-            # Guruhdagi tegishli mavzuga (Topic) yuborish
             await user.send_message(MY_GROUP_ID, final_msg, reply_to_message_id=thread_id)
-            await asyncio.sleep(2.5)  # Telegram spam-filtrdan himoya
+            await asyncio.sleep(2.5)
         except Exception as e:
-            print(f"⚠️ Xato yuz berdi: {e}")
+            print(f"⚠️ Xato: {e}")
 
 # --- ISHGA TUSHIRISH ---
 async def start_all():
     print("🚀 MadiWay tizimi ishga tushmoqda...")
     await bot.start()
     await user.start()
-    print("✅ Monitoring faol! Yuklar yig'ilmoqda...")
+    print("✅ Bot va UserBot faol!")
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
