@@ -9,9 +9,10 @@ BOT_TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c"
 
 TARGET_CHANNEL = "@MADIWAYy"
 MY_GROUP_ID = -1002441995574
-WEB_APP_URL = "https://madiway.uz" # O'zingning Web App linkini qo'y
+WEB_APP_URL = "https://madiway.uz" 
+# Botingdagi rasm linki (agar o'zgarmasa shunday qolsin)
+IMAGE_URL = "https://i.ibb.co/vzYm8Yx/madiway-banner.jpg" 
 
-# --- TOPIC MAP ---
 TOPIC_MAP = {
     "europa": 2, "evropa": 2, "rossiya": 4, "russia": 4, "россия": 4,
     "qirg": 6, "kyrgyzstan": 6, "kazak": 8, "qozog": 8, "казахстан": 8,
@@ -19,35 +20,32 @@ TOPIC_MAP = {
     "germaniya": 14, "germany": 14, "belarus": 16, "gruziya": 18, "ukraina": 20
 }
 
-# --- FILTRLAR ---
 KEYWORDS = ["yuk bor", "kerak", "fura", "gruz", "рейс", "груз", "фура", "cargo", "truck"]
 
-# Clientlarni yaratish
 bot = Client("madiway_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 user = Client("madiway_user", api_id=API_ID, api_hash=API_HASH)
 
-# --- 1. BOT: /START VA WEB APP ---
+# --- 1. BOT: /START (RASM BILAN) ---
 @bot.on_message(filters.command("start") & filters.private)
 async def start_handler(client, message):
     text = (
         "🏔 <b>MadiWay | Global Logistics</b> 🚀\n\n"
-        "Assalomu alaykum! MadiWay tizimiga xush kelibsiz.\n"
-        "Pastdagi tugma orqali yuklar bazasini boshqarishingiz mumkin."
+        "Xalqaro yuk tashish tizimiga xush kelibsiz!\n\n"
+        "Pastdagi tugmani bosing va ilova orqali yuk e'lonini yuboring.
+        tekin va ishonchli va xavfsiz"
     )
     keyboard = ReplyKeyboardMarkup(
-        [[KeyboardButton("🚚 MadiWay Web App", web_app=WebAppInfo(url=WEB_APP_URL))]],
+        [[KeyboardButton("🚚 MadiWay Ilovasi", web_app=WebAppInfo(url=WEB_APP_URL))]],
         resize_keyboard=True
     )
-    await message.reply_text(text, reply_markup=keyboard, parse_mode=types.enums.ParseMode.HTML)
+    
+    # Rasm bilan yuborish
+    try:
+        await message.reply_photo(photo=IMAGE_URL, caption=text, reply_markup=keyboard)
+    except:
+        await message.reply_text(text, reply_markup=keyboard)
 
-# --- 2. BOT: ADMIN REKLAMA (RASSILKA) ---
-@bot.on_message(filters.command("reklama") & filters.user("me"))
-async def broadcast_handler(client, message):
-    if message.reply_to_message:
-        await message.reply_to_message.copy(TARGET_CHANNEL)
-        await message.reply_text("✅ Reklama kanalga yuborildi!")
-
-# --- 3. USERBOT: YUKLARNI KO'CHIRISH ---
+# --- 2. USERBOT: YUKLARNI NUSXALASH ---
 @user.on_message(filters.group & filters.text)
 async def collector_handler(client, message):
     if message.chat.id == MY_GROUP_ID:
@@ -73,20 +71,18 @@ async def collector_handler(client, message):
             f"━━━━━━━━━━━━━━\n"
             f"🔗 <b>Manba:</b> {message.chat.title}\n"
             f"👤 <b>Aloqa:</b> {contact}\n\n"
-            f"🚛 @MADIWAYy — Muvaffaqiyatli jo'natildi!"
+            f"✅ <i>Muvaffaqiyatli jo'natildi!</i>"
         )
 
         try:
             await user.send_message(TARGET_CHANNEL, final_msg)
             await user.send_message(MY_GROUP_ID, final_msg, reply_to_message_id=thread_id)
-            print(f"📦 YUK JO'NATILDI: {route_name}")
-            await asyncio.sleep(2.5)
         except:
             pass
 
 # --- ISHGA TUSHIRISH ---
 async def start_all():
-    print("🚀 MadiWay tizimi Railway-da ishga tushmoqda...")
+    print("🚀 MadiWay Tizimi Railway uchun tayyor!")
     await bot.start()
     await user.start()
     await asyncio.Event().wait()
