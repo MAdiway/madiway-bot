@@ -1,76 +1,95 @@
-import logging
 import asyncio
-import re
-from aiogram import Bot, Dispatcher, types, F
-from aiogram.enums import ParseMode
+from pyrogram import Client, filters, types
+from pyrogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 
-# --- SOZLAMALAR ---
+# --- KONFIGURATSIYA ---
+API_ID = 35916395
+API_HASH = "0a59d023a618c1045b576a5bc0697200"
 BOT_TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c"
-GROUP_ID = -1002441995574  # Guruh ID
-ADMIN_IDS = [123456789, 987654321]  # O'zingning va boshqa adminlarning IDlarini yoz
-BAD_WORDS = ["so'kinish1", "so'kinish2", "reklama", "http", "t.me"] # Taqiqlangan so'zlar
 
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
+TARGET_CHANNEL = "@MADIWAYy"
+MY_GROUP_ID = -1002441995574
+WEB_APP_URL = "https://madiway.uz" # O'zingning Web App linkini qo'y
 
-# 1. Start bosilganda professional xabar
-@dp.message(F.text == "/start")
-async def start_handler(message: types.Message):
-    welcome_text = (
-        "🏔 <b>MadiWay | Global Logistics & Dispatch</b> 🚀\n\n"
-        "Xalqaro yuk tashish va professional dispetcherlik xizmatlari tarmog'iga xush kelibsiz! "
-        "Biz to'rtta davlatni yagona xavfsiz marshrut bilan bog'laymiz:\n\n"
-        "🌍 <b>Bizning yo'nalishlar:</b>\n"
-        "📍 O'zbekiston 🇺🇿\n"
-        "📍 Qozog'iston 🇰🇿\n"
-        "📍 Rossiya 🇷🇺\n"
-        "📍 Ozarbayjon 🇦🇿\n\n"
-        "🛡 <b>Nega aynan MadiWay?</b>\n"
-        "✅ Ishonchlilik: Yukingiz manzili va vaqti bizning nazoratimizda.\n"
-        "✅ Tezkorlik: Eng qulay va xavfsiz yo'llarni taqdim etamiz.\n"
-        "✅ Professional Dispetcherlik: 24/7 aloqa va harakat nazorati.\n\n"
-        "🚛 <b>MadiWay — Sizning yukingiz, bizning mas'uliyatimiz!</b>\n\n"
-        "📥 Bog'lanish uchun: @Madiways\n"
-        "🔗 Kanal: <a href='https://t.me/MADIWAYy'>T.me/MADIWAYy</a>\n"
-        "👥 Gruppa: Pullik lic @madiways"
+# --- TOPIC MAP ---
+TOPIC_MAP = {
+    "europa": 2, "evropa": 2, "rossiya": 4, "russia": 4, "россия": 4,
+    "qirg": 6, "kyrgyzstan": 6, "kazak": 8, "qozog": 8, "казахстан": 8,
+    "eron": 10, "iran": 10, "tojik": 12, "tajikistan": 12,
+    "germaniya": 14, "germany": 14, "belarus": 16, "gruziya": 18, "ukraina": 20
+}
+
+# --- FILTRLAR ---
+KEYWORDS = ["yuk bor", "kerak", "fura", "gruz", "рейс", "груз", "фура", "cargo", "truck"]
+
+# Clientlarni yaratish
+bot = Client("madiway_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+user = Client("madiway_user", api_id=API_ID, api_hash=API_HASH)
+
+# --- 1. BOT: /START VA WEB APP ---
+@bot.on_message(filters.command("start") & filters.private)
+async def start_handler(client, message):
+    text = (
+        "🏔 <b>MadiWay | Global Logistics</b> 🚀\n\n"
+        "Assalomu alaykum! MadiWay tizimiga xush kelibsiz.\n"
+        "Pastdagi tugma orqali yuklar bazasini boshqarishingiz mumkin."
     )
-    
-    # Admin bo'lsa qo'shimcha tugmalar
-    if message.from_user.id in ADMIN_IDS:
-        kb = [
-            [types.KeyboardButton(text="📊 Statistika"), types.KeyboardButton(text="📢 Reklama yuborish")],
-            [types.KeyboardButton(text="🚫 Userni bloklash"), types.KeyboardButton(text="✅ Userni ochish")],
-            [types.KeyboardButton(text="⚙️ Sozlamalar"), types.KeyboardButton(text="🧹 Guruhni tozalash")],
-            [types.KeyboardButton(text="🚚 Yuk yuborish (Web App)", web_app=types.WebAppInfo(url="SENING_URL"))]
-        ]
-        reply_markup = types.ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
-    else:
-        kb = [[types.KeyboardButton(text="🚚 Tizimga kirish", web_app=types.WebAppInfo(url="SENING_URL"))]]
-        reply_markup = types.ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+    keyboard = ReplyKeyboardMarkup(
+        [[KeyboardButton("🚚 MadiWay Web App", web_app=WebAppInfo(url=WEB_APP_URL))]],
+        resize_keyboard=True
+    )
+    await message.reply_text(text, reply_markup=keyboard, parse_mode=types.enums.ParseMode.HTML)
 
-    await message.answer(welcome_text, parse_mode=ParseMode.HTML, reply_markup=reply_markup, disable_web_page_preview=True)
+# --- 2. BOT: ADMIN REKLAMA (RASSILKA) ---
+@bot.on_message(filters.command("reklama") & filters.user("me"))
+async def broadcast_handler(client, message):
+    if message.reply_to_message:
+        await message.reply_to_message.copy(TARGET_CHANNEL)
+        await message.reply_text("✅ Reklama kanalga yuborildi!")
 
-# 2. Topic 1 ni (Admin topic) tozalash mantiqi
-@dp.message(F.chat.id == GROUP_ID, F.message_thread_id == 1)
-async def clean_admin_topic(message: types.Message):
-    # Agar xabar adminlardan bo'lmasa va so'kinish yoki reklama bo'lsa
-    if message.from_user.id not in ADMIN_IDS:
-        content = message.text or message.caption or ""
-        # So'kinish yoki linklarni tekshirish
-        for word in BAD_WORDS:
-            if word.lower() in content.lower():
-                await message.delete()
-                return
+# --- 3. USERBOT: YUKLARNI KO'CHIRISH ---
+@user.on_message(filters.group & filters.text)
+async def collector_handler(client, message):
+    if message.chat.id == MY_GROUP_ID:
+        return
 
-# 3. Har qanday xabarni guruhda nazorat qilish (so'kinishlar uchun)
-@dp.message(F.chat.id == GROUP_ID)
-async def global_cleaner(message: types.Message):
-    if message.from_user.id not in ADMIN_IDS:
-        # Bu yerda ham so'kinishlarni tekshirib o'chirishing mumkin
-        pass
+    msg_text = message.text.lower()
+    if any(word in msg_text for word in KEYWORDS):
+        thread_id = 1
+        route_name = "ANIQLANMAGAN"
+        
+        for key, t_id in TOPIC_MAP.items():
+            if key in msg_text:
+                thread_id = t_id
+                route_name = key.upper()
+                break
 
-async def main():
-    await dp.start_polling(bot)
+        contact = f"@{message.from_user.username}" if message.from_user.username else f"ID: {message.from_user.id}"
+        
+        final_msg = (
+            f"🏔 <b>MadiWay | Auto-Dispatcher</b> 🚀\n\n"
+            f"📍 <b>Yo'nalish:</b> #{route_name}\n"
+            f"📦 <b>E'lon:</b>\n<i>{message.text}</i>\n\n"
+            f"━━━━━━━━━━━━━━\n"
+            f"🔗 <b>Manba:</b> {message.chat.title}\n"
+            f"👤 <b>Aloqa:</b> {contact}\n\n"
+            f"🚛 @MADIWAYy — Muvaffaqiyatli jo'natildi!"
+        )
+
+        try:
+            await user.send_message(TARGET_CHANNEL, final_msg)
+            await user.send_message(MY_GROUP_ID, final_msg, reply_to_message_id=thread_id)
+            print(f"📦 YUK JO'NATILDI: {route_name}")
+            await asyncio.sleep(2.5)
+        except:
+            pass
+
+# --- ISHGA TUSHIRISH ---
+async def start_all():
+    print("🚀 MadiWay tizimi Railway-da ishga tushmoqda...")
+    await bot.start()
+    await user.start()
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(start_all())
