@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputFile
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram import Client, filters
 
 # --- SOZLAMALAR ---
@@ -10,6 +10,7 @@ API_HASH = "0a59d023a618c1045b576a5bc0697200"
 BOT_TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c"
 SESSION_STRING = "AgIkCmsAXSW0flyihTLmu1-JWlCeesmW4M_qmRqzcSdTcV28DOqkhkGGbo37stcz44etYaFtrnPjZi-YzJ7PNEh75QfH4spOkTgC_ThKf3FLgXgwKakN-eADRxBRPWj5RAjSSmZA_Vm4YjZhqPpanJzQlh4AQEHGQflPWI0hfa0_7dX-lce6X3aQTsgu-Va5k3_tauo3T5kgZtLyMxElo2sxHeuvZIy_mwvIYpyBfSfNgOvC-JNuzv0SEkAuL8ln3usEF_6j4YFu8ObtBmzOwgS1h6evvsnlEbiIQff-UY7rc6PMwz4xlOvUL6O68XaN90VMZxmkZoGm8D2FlsbxBpJhqNOlWQAAAAHMYynbAA"
 
+# MUHIM: Har doim qo'shtirnoq ichida yozilishi shart!
 TARGET_CHANNEL = "@MADIWAYy"
 MY_GROUP_ID = -1002441995574
 BOT_USERNAME = "MADIWAYy_Bot"
@@ -34,37 +35,29 @@ def get_main_keyboard():
     )
     return keyboard
 
-# --- BOT START BUYRUG'I ---
+# --- START BUYRUG'I ---
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
     welcome_text = (
         "🏔 <b>MadiWay | Global Logistics & Dispatch</b> 🚀\n\n"
-        "Xalqaro yuk tashish va professional dispetcherlik xizmatlari tarmog'iga xush kelibsiz! "
-        "Biz to'rtta davlatni yagona xavfsiz marshrut bilan bog'laymiz:\n\n"
+        "Xalqaro yuk tashish va professional dispetcherlik xizmatlari tarmog'iga xush kelibsiz!\n\n"
         "🌍 <b>Bizning yo'nalishlar:</b>\n"
-        "📍 O'zbekiston 🇺🇿\n"
-        "📍 Qozog'iston 🇰🇿\n"
-        "📍 Rossiya 🇷🇺\n"
-        "📍 Ozarbayjon 🇦🇿\n\n"
-        "🛡 <b>Nega aynan MadiWay?</b>\n"
-        "✅ Ishonchlilik: Yukingiz manzili va vaqti bizning nazoratimizda.\n"
-        "✅ Tezkorlik: Eng qulay va xavfsiz yo'llarni taqdim etamiz.\n"
-        "✅ Professional Dispetcherlik: 24/7 aloqa va harakat nazorati.\n\n"
+        "📍 O'zbekiston 🇺🇿, Qozog'iston 🇰🇿, Rossiya 🇷🇺, Ozarbayjon 🇦🇿\n\n"
+        "🛡 <b>Nega MadiWay?</b>\n"
+        "✅ Ishonchlilik, Tezkorlik, 24/7 Professional Dispetcherlik.\n\n"
         "🚛 <b>MadiWay — Sizning yukingiz, bizning mas'uliyatimiz!</b>\n\n"
         "📥 Bog'lanish uchun: @Madiways\n"
         "🔗 Link: T.me/MADIWAYy\n"
-        "🤖 Bot: @MADIWAYy_bot\n"
         "👥 Gruppa: Pullik lic @madiways"
     )
     try:
-        # Fayl nomi GitHub'da qanday bo'lsa, xuddi shunday yozilishi kerak
+        # Fayl GitHub-da root papkada bo'lishi kerak
         with open("madiway_banner.png", "rb") as photo:
-            await message.reply_photo(photo, caption=welcome_text, reply_markup=get_main_keyboard())
-    except Exception as e:
-        print(f"Rasm yuborishda xato: {e}")
+            await bot.send_photo(message.chat.id, photo, caption=welcome_text, reply_markup=get_main_keyboard())
+    except:
         await message.answer(welcome_text, reply_markup=get_main_keyboard())
 
-# --- USERBOT (XABARLARNI YIG'ISH) ---
+# --- USERBOT LOGIKASI ---
 @userbot.on_message(filters.group & filters.text)
 async def handle_new_post(client, message):
     if message.chat.id == MY_GROUP_ID:
@@ -83,21 +76,20 @@ async def handle_new_post(client, message):
             f"🏔 <b>MadiWay | Auto-Dispatcher</b>\n"
             f"📍 Yo'nalish: #{route}\n\n"
             f"{message.text}\n\n"
-            f"👤 Aloqa: @{message.from_user.username if message.from_user.username else message.from_user.id}\n"
+            f"👤 Aloqa: @{message.from_user.username if message.from_user.username else 'id_'+str(message.from_user.id)}\n"
             f"📅 Sana: {datetime.now().strftime('%d-%m-%Y')}\n"
             f"━━━━━━━━━━━━━━\n"
             f"📢 Kanal: {TARGET_CHANNEL}"
         )
         try:
+            # 73-QATOR: ENDI BU YERDA LINK EMAS, O'ZGARUVCHI TURIBDI
             await bot.send_message(TARGET_CHANNEL, caption, reply_markup=get_main_keyboard())
             await bot.send_message(MY_GROUP_ID, caption, message_thread_id=topic_id, reply_markup=get_main_keyboard())
-        except Exception as e:
-            print(f"Yuborishda xato: {e}")
+        except:
+            pass
 
-# --- IKKALA TIZIMNI BIRGA ISHGA TUSHIRISH ---
-async def on_startup(dispatcher):
+async def on_startup(_):
     await userbot.start()
-    print("✅ Userbot va Aiogram birga ishlamoqda!")
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
