@@ -1,7 +1,8 @@
 import asyncio
 from datetime import datetime
-from pyrogram import Client, filters, types
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import Client, filters
 
 # --- KONFIGURATSIYA ---
 API_ID = 35916395
@@ -11,84 +12,83 @@ SESSION_STRING = "AgIkCmsAXSW0flyihTLmu1-JWlCeesmW4M_qmRqzcSdTcV28DOqkhkGGbo37st
 
 TARGET_CHANNEL = "@MADIWAYy"
 MY_GROUP_ID = -1002441995574
-BOT_USERNAME = "madiway_bot" # Botining userneymini yoz
+BOT_USERNAME = "madiway_bot"
 
-# Mavzular xaritasi (Topic ID'larni tekshirib ol)
+# Topic ID xaritasi
 TOPIC_MAP = {
-    "europa": 2, "evropa": 2, "rossiya": 4, "russia": 4, "россия": 4, "рф": 4,
-    "qirg": 6, "kyrgyzstan": 6, "kazak": 8, "qozog": 8, "казахстан": 8,
-    "eron": 10, "iran": 10, "tojik": 12, "tajikistan": 12,
-    "germaniya": 14, "germany": 14, "belarus": 16, "gruziya": 18, "ukraina": 20
+    "rossiya": 4, "russia": 4, "россия": 4,
+    "qozog": 8, "kazak": 8, "казахстан": 8,
+    "europa": 2, "evropa": 2, "germaniya": 14
 }
 
-KEYWORDS = ["yuk", "fura", "gruz", "рейс", "груз", "фура", "kerak", "cargo"]
+KEYWORDS = ["yuk", "fura", "gruz", "рейс", "груз", "фура", "kerak"]
 
-bot = Client("madiway_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
-user = Client("madiway_user", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
+# Bot va Userbotni sozlash
+bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
+dp = Dispatcher(bot)
+userbot = Client("madiway_user", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
-@user.on_message(filters.group & filters.text)
-async def collector_handler(client, message):
+# --- FUNKSIYALAR ---
+
+def get_keyboard():
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard.add(
+        InlineKeyboardButton("📞 Nomerni ko'rish", url=f"https://t.me/{BOT_USERNAME}?start=get_number"),
+        InlineKeyboardButton("📱 Programma", url=f"https://t.me/{BOT_USERNAME}?start=app")
+    )
+    return keyboard
+
+@userbot.on_message(filters.group & filters.text)
+async def handle_new_post(client, message):
     if message.chat.id == MY_GROUP_ID:
         return
 
-    msg_text = message.text.lower()
-    if any(word in msg_text for word in KEYWORDS):
-        thread_id = 1 # Topilmasa 'General'ga tushadi
-        route_name = "UMUMIY"
-        
+    text_lower = message.text.lower()
+    if any(word in text_lower for word in KEYWORDS):
+        # Topicni aniqlash
+        topic_id = 1 # General
+        route = "UMUMIY"
         for key, t_id in TOPIC_MAP.items():
-            if key in msg_text:
-                thread_id = t_id
-                route_name = key.upper()
+            if key in text_lower:
+                topic_id = t_id
+                route = key.upper()
                 break
 
-        # Sana va vaqt
         now = datetime.now().strftime("%d-%m-%Y | %H:%M")
-        contact = f"@{message.from_user.username}" if message.from_user.username else f"ID: {message.from_user.id}"
+        username = f"@{message.from_user.username}" if message.from_user.username else str(message.from_user.id)
         
-        # Reklama va Linklar qo'shilgan matn
-        final_msg = (
-            f"🏔 <b>MadiWay | Auto-Dispatcher</b> 🚀\n"
-            f"━━━━━━━━━━━━━━\n"
-            f"📍 <b>Yo'nalish:</b> #{route_name}\n"
+        caption = (
+            f"🏔 <b>MadiWay | Auto-Dispatcher</b>\n"
+            f"📍 Yo'nalish: #{route}\n\n"
             f"📦 <b>E'lon:</b>\n<i>{message.text}</i>\n\n"
-            f"👤 <b>Aloqa:</b> {contact}\n"
-            f"📅 <b>Sana:</b> {now}\n"
+            f"👤 Aloqa: {username}\n"
+            f"📅 Sana: {now}\n"
             f"━━━━━━━━━━━━━━\n"
-            f"📢 Kanal: {TARGET_CHANNEL}\n"
-            f"🤖 Bot: @{BOT_USERNAME}"
+            f"📢 Kanal: {https://t.me/MADIWAYy}\n"
+            f"🤖 Bot: @{MADIWAYy_Bot}"
         )
-
-        # Tugmalar
-        keyboard = InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("📞 Nomerni ko'rish", url=f"https://t.me/{BOT_USERNAME}?start=get_number"),
-                InlineKeyboardButton("📱 Programma", url=f"https://t.me/{BOT_USERNAME}?start=app")
-            ]
-        ])
 
         try:
             # 1. Kanalga yuborish
-            await user.send_message(TARGET_CHANNEL, final_msg, reply_markup=keyboard)
+            await bot.send_message(https://t.me/MADIWAYy, caption, reply_markup=get_keyboard())
             
-            # 2. Guruhdagi maxsus mavzuga (Topic) yuborish
-            # reply_to_message_id bu yerda Topic ID vazifasini bajaradi
-            await user.send_message(
-                chat_id=MY_GROUP_ID, 
-                text=final_msg, 
-                reply_to_message_id=thread_id, 
-                reply_markup=keyboard
+            # 2. Guruhdagi Topicga yuborish
+            await bot.send_message(
+                MY_GROUP_ID, 
+                caption, 
+                message_thread_id=topic_id, # aiogramda topicga yuborish
+                reply_markup=get_keyboard()
             )
-            
-            await asyncio.sleep(2)
         except Exception as e:
-            print(f"⚠️ Xato yuz berdi: {e}")
+            print(f"Xato: {e}")
 
-async def start_all():
-    print("🚀 MadiWay yangilangan tizimi (Topic + Buttons) ishga tushdi...")
-    await bot.start()
-    await user.start()
-    await asyncio.Event().wait()
+# Botni ishga tushirish
+async def on_startup(_):
+    await userbot.start()
+    print("✅ Userbot va Aiogram Bot ishga tushdi!")
 
 if __name__ == "__main__":
-    asyncio.run(start_all())
+    # Pyrogramni aiogram bilan birga ishlatish
+    loop = asyncio.get_event_loop()
+    loop.create_task(userbot.start())
+    executor.start_polling(dp, skip_updates=True)
