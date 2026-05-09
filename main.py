@@ -11,30 +11,20 @@ BOT_TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c"
 SESSION_STRING = "AgIkCmsAXSW0flyihTLmu1-JWlCeesmW4M_qmRqzcSdTcV28DOqkhkGGbo37stcz44etYaFtrnPjZi-YzJ7PNEh75QfH4spOkTgC_ThKf3FLgXgwKakN-eADRxBRPWj5RAjSSmZA_Vm4YjZhqPpanJzQlh4AQEHGQflPWI0hfa0_7dX-lce6X3aQTsgu-Va5k3_tauo3T5kgZtLyMxElo2sxHeuvZIy_mwvIYpyBfSfNgOvC-JNuzv0SEkAuL8ln3usEF_6j4YFu8ObtBmzOwgS1h6evvsnlEbiIQff-UY7rc6PMwz4xlOvUL6O68XaN90VMZxmkZoGm8D2FlsbxBpJhqNOlWQAAAAHMYynbAA"
 
 TARGET_CHANNEL = "@MADIWAYy"
-MY_GROUP_ID = -1002441995574  # MADIWAY_Gr ID-si
+MY_GROUP_ID = -1002441995574
 BOT_USERNAME = "MADIWAYy_Bot"
 
-# --- TOPICLAR XARITASI (ID-lar linklaring bo'yicha) ---
 TOPIC_MAP = {
-    "europa": 2, "evropa": 2,
-    "rossiya": 4, "russia": 4, "россия": 4,
-    "qirg": 6, "kyrgyzstan": 6, "киргизия": 6,
-    "kazak": 8, "qozog": 8, "казахстан": 8,
-    "eron": 10, "iran": 10,
-    "tojik": 12, "tajikistan": 12,
-    "germaniya": 14, "germany": 14,
-    "belarus": 16,
-    "gruziya": 18, "georgia": 18,
-    "ukraina": 20, "ukraine": 20
+    "europa": 2, "evropa": 2, "rossiya": 4, "russia": 4, "qirg": 6,
+    "kazak": 8, "eron": 10, "tojik": 12, "germaniya": 14,
+    "belarus": 16, "gruziya": 18, "ukraina": 20
 }
-
-KEYWORDS = ["yuk", "fura", "gruz", "рейс", "груз", "фура", "kerak", "cargo"]
+KEYWORDS = ["yuk", "fura", "gruz", "рейс", "груз", "фура", "kerak"]
 
 bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
 dp = Dispatcher(bot)
 userbot = Client("madiway_user", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
-# --- KLAVIATURA ---
 def get_main_keyboard():
     keyboard = InlineKeyboardMarkup(row_width=2)
     keyboard.add(
@@ -44,7 +34,7 @@ def get_main_keyboard():
     )
     return keyboard
 
-# --- START BUYRUG'I (Banner bilan) ---
+# --- BOT START BUYRUG'I ---
 @dp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
     welcome_text = (
@@ -62,60 +52,52 @@ async def send_welcome(message: types.Message):
         "✅ Professional Dispetcherlik: 24/7 aloqa va harakat nazorati.\n\n"
         "🚛 <b>MadiWay — Sizning yukingiz, bizning mas'uliyatimiz!</b>\n\n"
         "📥 Bog'lanish uchun: @Madiways\n"
-        "👥 Guruh: Pullik lic @Madiways"
+        "🔗 Link: T.me/MADIWAYy\n"
+        "🤖 Bot: @MADIWAYy_bot\n"
+        "👥 Gruppa: Pullik lic @madiways"
     )
     try:
-        banner = InputFile("madiway_banner.png")
-        await bot.send_photo(chat_id=message.chat.id, photo=banner, caption=welcome_text, reply_markup=get_main_keyboard())
-    except:
+        # Fayl nomi GitHub'da qanday bo'lsa, xuddi shunday yozilishi kerak
+        with open("madiway_banner.png", "rb") as photo:
+            await message.reply_photo(photo, caption=welcome_text, reply_markup=get_main_keyboard())
+    except Exception as e:
+        print(f"Rasm yuborishda xato: {e}")
         await message.answer(welcome_text, reply_markup=get_main_keyboard())
 
-# --- ASOSIY ISHCHY LOGIKA ---
+# --- USERBOT (XABARLARNI YIG'ISH) ---
 @userbot.on_message(filters.group & filters.text)
 async def handle_new_post(client, message):
     if message.chat.id == MY_GROUP_ID:
         return
-
     text_lower = message.text.lower()
     if any(word in text_lower for word in KEYWORDS):
-        topic_id = 1 # Topilmasa Umumiy (General)
+        topic_id = 1
         route = "UMUMIY"
-        
         for key, t_id in TOPIC_MAP.items():
             if key in text_lower:
                 topic_id = t_id
                 route = key.upper()
                 break
-
-        now = datetime.now().strftime("%d-%m-%Y | %H:%M")
-        username = f"@{message.from_user.username}" if message.from_user.username else f"ID: {message.from_user.id}"
         
         caption = (
-            f"🏔 <b>MadiWay | Auto-Dispatcher</b> 🚀\n"
+            f"🏔 <b>MadiWay | Auto-Dispatcher</b>\n"
+            f"📍 Yo'nalish: #{route}\n\n"
+            f"{message.text}\n\n"
+            f"👤 Aloqa: @{message.from_user.username if message.from_user.username else message.from_user.id}\n"
+            f"📅 Sana: {datetime.now().strftime('%d-%m-%Y')}\n"
             f"━━━━━━━━━━━━━━\n"
-            f"📍 <b>Yo'nalish:</b> #{route}\n"
-            f"📦 <b>E'lon:</b>\n<i>{message.text}</i>\n\n"
-            f"👤 <b>Aloqa:</b> {username}\n"
-            f"📅 <b>Sana:</b> {now}\n"
-            f"━━━━━━━━━━━━━━\n"
-            f"📢 Kanal: {TARGET_CHANNEL}\n"
-            f"🤖 Bot: @{BOT_USERNAME}"
+            f"📢 Kanal: {TARGET_CHANNEL}"
         )
-
         try:
-            # Kanalga yuborish
-            await bot.send_message(chat_id=TARGET_CHANNEL, text=caption, reply_markup=get_main_keyboard())
-            # Guruhdagi aynan sen bergan link bo'yicha Topic-ga yuborish
-            await bot.send_message(
-                chat_id=MY_GROUP_ID, 
-                text=caption, 
-                message_thread_id=topic_id, 
-                reply_markup=get_main_keyboard()
-            )
+            await bot.send_message(TARGET_CHANNEL, caption, reply_markup=get_main_keyboard())
+            await bot.send_message(MY_GROUP_ID, caption, message_thread_id=topic_id, reply_markup=get_main_keyboard())
         except Exception as e:
-            print(f"Xato yuz berdi: {e}")
+            print(f"Yuborishda xato: {e}")
+
+# --- IKKALA TIZIMNI BIRGA ISHGA TUSHIRISH ---
+async def on_startup(dispatcher):
+    await userbot.start()
+    print("✅ Userbot va Aiogram birga ishlamoqda!")
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.create_task(userbot.start())
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
