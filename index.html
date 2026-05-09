@@ -1,49 +1,389 @@
-import asyncio
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+<!DOCTYPE html>
 
-# --- SOZLAMALAR ---
-BOT_TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c"
-BOT_USERNAME = "MADIWAYy_Bot"
+<html lang="uz">
 
-# Botni ishga tushirish
-bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
-dp = Dispatcher(bot)
+<head>
 
-# --- KLAVIATURA ---
-def get_main_keyboard():
-    keyboard = InlineKeyboardMarkup(row_width=2)
-    keyboard.add(
-        InlineKeyboardButton("📞 Nomerni ko'rish", url=f"https://t.me/{BOT_USERNAME}?start=get_number"),
-        InlineKeyboardButton("📱 Programma", url=f"https://t.me/{BOT_USERNAME}?start=app"),
-        InlineKeyboardButton("📢 Kanalimiz", url="https://t.me/MADIWAYy")
-    )
-    return keyboard
+    <meta charset="UTF-8">
 
-# --- START BUYRUG'I ---
-@dp.message_handler(commands=['start'])
-async def send_welcome(message: types.Message):
-    welcome_text = (
-        "🏔 <b>MadiWay | Global Logistics & Dispatch</b> 🚀\n\n"
-        "Xalqaro yuk tashish va professional dispetcherlik xizmatlari tarmog'iga xush kelibsiz!\n\n"
-        "🌍 <b>Bizning yo'nalishlar:</b>\n"
-        "📍 O'zbekiston 🇺🇿, Qozog'iston 🇰🇿, Rossiya 🇷🇺, Ozarbayjon 🇦🇿\n\n"
-        "🛡 <b>Nega MadiWay?</b>\n"
-        "✅ Ishonchlilik, Tezkorlik, 24/7 Professional Dispetcherlik.\n\n"
-        "🚛 <b>MadiWay — Sizning yukingiz, bizning mas'uliyatimiz!</b>\n\n"
-        "📥 Bog'lanish uchun: @Madiways\n"
-        "🔗 Link: T.me/MADIWAYy\n"
-        "👥 Gruppa: Pullik lic @madiways"
-    )
-    try:
-        # madiway_banner.png GitHub-da bo'lishi kerak
-        with open("madiway_banner.png", "rb") as photo:
-            await bot.send_photo(message.chat.id, photo, caption=welcome_text, reply_markup=get_main_keyboard())
-    except:
-        # Rasm topilmasa faqat matn yuboriladi
-        await message.answer(welcome_text, reply_markup=get_main_keyboard())
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-# --- ASOSIY ISHGA TUSHIRISH ---
-if __name__ == "__main__":
-    print("✅ MadiWay Bot faqat Bot rejimida ishga tushdi!")
-    executor.start_polling(dp, skip_updates=True)
+    <title>MadiWay Logistics Professional</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <script src="https://unpkg.com/inputmask@5.0.7/dist/inputmask.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+
+        :root { --orange: #FF6B00; --dark: #1C1C1E; --gray: #F2F4F7; --blue: #0088CC; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        body { background: var(--gray); color: var(--dark); overflow-x: hidden; }
+
+        .page { display: none; padding-bottom: 80px; }
+
+        .active { display: block !important; }
+
+        #p-faceid { background: #000; text-align: center; color: white; height: 100vh; padding-top: 50px; }
+
+        .scanner-box { position: relative; width: 240px; height: 240px; margin: 30px auto; border-radius: 50%; border: 4px solid var(--orange); overflow: hidden; }
+
+        #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--orange); box-shadow: 0 0 15px var(--orange); animation: scan 2s infinite linear; }
+
+        @keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+
+        .banner { background: white; padding: 25px 20px; border-radius: 0 0 30px 30px; position: relative; height: 180px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+
+        .truck-img { position: absolute; right: -5px; bottom: 10px; width: 190px; z-index: 1; }
+
+        .card { background: white; margin: 10px 15px; padding: 18px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; cursor: pointer; position: relative; z-index: 2; }
+
+        .input { width: 100%; padding: 15px; border-radius: 15px; border: 1.5px solid #DDD; margin-bottom: 12px; font-size: 16px; background: #F9F9FB; outline: none; }
+
+        .btn-send { color: white; border: none; padding: 16px; border-radius: 18px; width: 100%; font-weight: 800; font-size: 15px; cursor: pointer; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; backdrop-filter: blur(5px); }
+
+        .modal-content { background: white; border-radius: 30px 30px 0 0; padding: 25px; position: absolute; bottom: 0; width: 100%; }
+
+    </style>
+
+</head>
+
+<body>
+
+
+
+<div id="p-login" class="page">
+
+    <div style="padding: 60px 25px; text-align: center;">
+
+        <h1 style="color: var(--orange); font-size: 40px; font-weight: 900;">MadiWay</h1>
+
+        <p>Tizimga kirish</p><br>
+
+        <input type="text" id="u-name" class="input" placeholder="Ism Familiya">
+
+        <input type="tel" id="u-phone" class="input" placeholder="+998 (__) ___-__-__">
+
+        <button class="btn-send" style="background: var(--orange);" onclick="startAuth()">Kirish</button>
+
+    </div>
+
+</div>
+
+
+
+<div id="p-faceid" class="page">
+
+    <h2>Face ID Tasdiqlash</h2>
+
+    <div class="scanner-box">
+
+        <video id="video" autoplay playsinline muted></video>
+
+        <div class="scan-line"></div>
+
+    </div>
+
+    <p>Shaxsingiz tekshirilmoqda...</p>
+
+</div>
+
+
+
+<div id="p-main" class="page">
+
+    <div class="banner">
+
+        <p>Salom, <span id="user-display" style="color: var(--orange); font-weight: 800;">...</span></p>
+
+        <h1 style="position:relative; z-index: 2;">Marshrutni tanlang</h1>
+
+        <img src="https://i.postimg.cc/WbcqK7FF/daf-xf-daf-trucks-car-renault-magnum-car-removebg-preview.png" class="truck-img">
+
+    </div>
+
+    <div id="list" style="padding-top: 10px;"></div>
+
+    <button onclick="logout()" style="margin: 20px; color: red; background: none; border: none; width: 100%;">Tizimdan chiqish</button>
+
+</div>
+
+
+
+<div id="mod" class="modal">
+
+    <div class="modal-content">
+
+        <h3 id="m-title" style="margin-bottom: 15px;">Yo'nalish</h3>
+
+        <textarea id="yuk-desc" class="input" rows="3" placeholder="Yuk tavsifi (masalan: 22t kafel)"></textarea>
+
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+
+            <input type="time" id="yuk-time" class="input" style="margin: 0; width: 50%;" disabled>
+
+            <label><input type="checkbox" id="is-now" checked onchange="document.getElementById('yuk-time').disabled = this.checked"> Hozir</label>
+
+        </div>
+
+        
+
+        <button id="btn-both" class="btn-send" style="background: var(--orange);" onclick="sendData('both')">📤 Guruh va Kanalga</button>
+
+        <button id="btn-chan" class="btn-send" style="background: var(--blue);" onclick="sendData('chan')">📢 Faqat Kanalga</button>
+
+        <button id="btn-group" class="btn-send" style="background: #28a745;" onclick="sendData('group')">👥 Faqat Guruhga</button>
+
+        
+
+        <button onclick="document.getElementById('mod').style.display='none'" style="width:100%; border:none; background:none; padding:10px; color:gray;">Yopish</button>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+    const tg = window.Telegram.WebApp;
+
+    tg.expand();
+
+    
+
+    const BOT_TOKEN = "8724439262:AAFGNuQQ4IxdqitlcCEtkHLsvyFwSPg_b1c";
+
+    const GROUP_ID = "-1002441995574";
+
+    const CHANNEL_ID = "@MADIWAYy";
+
+    const ADMIN_TOPIC = 1;
+
+
+
+    Inputmask({"mask": "+998 (99) 999-99-99"}).mask(document.getElementById('u-phone'));
+
+
+
+    // Sening topic IDlaring
+
+    const topics = [
+
+        { name: "Europa", id: 2 }, { name: "Rossiya", id: 4 }, { name: "Qirg'iziston", id: 6 },
+
+        { name: "Kazakistan", id: 8 }, { name: "Eron", id: 10 }, { name: "Tojikston", id: 12 },
+
+        { name: "Germaniya", id: 14 }, { name: "Belarusiya", id: 16 }, { name: "Gruziya", id: 18 }, { name: "Ukraina", id: 20 }
+
+    ];
+
+
+
+    let selId = 0, selName = "";
+
+
+
+    window.onload = function() {
+
+        // Sessiyani sbros qilish uchun v2 ishlatamiz
+
+        const saved = localStorage.getItem('madi_session_v2');
+
+        if (saved) loginSuccess(JSON.parse(saved));
+
+        else {
+
+            localStorage.removeItem('madi_session'); // Eski sessiyani o'chirish
+
+            document.getElementById('p-login').classList.add('active');
+
+        }
+
+    };
+
+
+
+    function startAuth() {
+
+        const n = document.getElementById('u-name').value;
+
+        const p = document.getElementById('u-phone').value;
+
+        if(n.length < 3 || p.includes('_')) return alert("Ma'lumotlarni to'ldiring!");
+
+        
+
+        document.getElementById('p-login').classList.remove('active');
+
+        document.getElementById('p-faceid').classList.add('active');
+
+        
+
+        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+
+            document.getElementById('video').srcObject = stream;
+
+            setTimeout(async () => {
+
+                stream.getTracks().forEach(t => t.stop());
+
+                const user = { n, p };
+
+                localStorage.setItem('madi_session_v2', JSON.stringify(user));
+
+                
+
+                const text = `👤 <b>LOGIN:</b> ${n}\n📞 ${p}\n✅ Face ID OK`;
+
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(text)}&parse_mode=HTML&message_thread_id=${ADMIN_TOPIC}`);
+
+                
+
+                loginSuccess(user);
+
+            }, 2500);
+
+        }).catch(() => {
+
+            const user = { n, p };
+
+            localStorage.setItem('madi_session_v2', JSON.stringify(user));
+
+            loginSuccess(user);
+
+        });
+
+    }
+
+
+
+    function loginSuccess(user) {
+
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+        document.getElementById('p-main').classList.add('active');
+
+        document.getElementById('user-display').innerText = user.n;
+
+        document.getElementById('list').innerHTML = topics.map(t => `
+
+            <div class="card" onclick="openModal(${t.id}, '${t.name}')">
+
+                <b><i class="fa fa-truck" style="color:var(--orange)"></i> &nbsp;${t.name}</b>
+
+                <i class="fa fa-chevron-right" style="color:#ccc"></i>
+
+            </div>
+
+        `).join('');
+
+    }
+
+
+
+    function openModal(id, name) {
+
+        selId = id; selName = name;
+
+        document.getElementById('m-title').innerText = name;
+
+        document.getElementById('mod').style.display = 'block';
+
+    }
+
+
+
+    async function sendData(mode) {
+
+        const desc = document.getElementById('yuk-desc').value;
+
+        const time = document.getElementById('is-now').checked ? "Hozir" : document.getElementById('yuk-time').value;
+
+        const user = JSON.parse(localStorage.getItem('madi_session_v2'));
+
+        
+
+        if(!desc) return alert("Yuk tavsifini yozing!");
+
+        
+
+        // Daxshat professional format
+
+        const msg = `🏔 <b>MadiWay | Global Logistics</b> 🚀\n\n` +
+
+                    `📍 <b>Yo'nalish:</b> #${selName}\n` +
+
+                    `📦 <b>Yuk:</b> ${desc}\n` +
+
+                    `⏰ <b>Vaqt:</b> ${time}\n` +
+
+                    `━━━━━━━━━━━━━━\n` +
+
+                    `👤 <b>Dispetcher:</b> ${user.n}\n` +
+
+                    `📞 <b>Aloqa:</b> ${user.p}\n\n` +
+
+                    `🚛 <i>Sizning yukingiz, bizning mas'uliyatimiz!</i>`;
+
+
+
+        try {
+
+            // 1. Kanalga yuborish (mode 'both' yoki 'chan' bo'lsa)
+
+            if (mode === 'both' || mode === 'chan') {
+
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHANNEL_ID}&text=${encodeURIComponent(msg)}&parse_mode=HTML`);
+
+            }
+
+            
+
+            // 2. Guruhga yuborish (mode 'both' yoki 'group' bo'lsa)
+
+            if (mode === 'both' || mode === 'group') {
+
+                // Topicga yuborish uchun reply_to_message_id ishlatish kerak bo'lishi mumkin, lekin topiclar uchun message_thread_id yetarli
+
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(msg)}&parse_mode=HTML&message_thread_id=${selId}`);
+
+            }
+
+
+
+            alert("✅ Muvaffaqiyatli yuborildi!");
+
+            tg.close();
+
+        } catch (e) {
+
+            alert("Xatolik!");
+
+        }
+
+    }
+
+
+
+    function logout() {
+
+        localStorage.removeItem('madi_session_v2');
+
+        location.reload();
+
+    }
+
+</script>
+
+</body>
+
+</html> mana shu kodniu o'zgatrismasnda kaalga va gruppa va topiclarga boradigan qil to'lliq va py ham ber 
